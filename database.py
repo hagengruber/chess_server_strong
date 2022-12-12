@@ -23,8 +23,8 @@ class Database:
     def add_player(self, mail, password, username, code):
         """Adds a player to the 'Spieler' table"""
         self.open_connection()
-        self.cur.executescript("""INSERT INTO Spieler (mail, passwort, nutzername, aktivierungscode) VALUES
-                            ('%s', '%s', '%s', '%s')""" % (mail, password, username, code))
+        self.cur.execute("""INSERT INTO Spieler (mail, passwort, nutzername, aktivierungscode) VALUES
+                            (?, ?, ?, ?)""" % (mail, password, username, code))
         self.con.commit()
         self.close_connection()
 
@@ -32,7 +32,7 @@ class Database:
         """Adds a completed game to the 'Spiele' table"""
         self.open_connection()
         self.cur.execute("""INSERT INTO Spiele (spieler1id, spieler2id, siegerid) VALUES 
-                            ('%s', '%s', '%s')""" % (player1_id, player2_id, victor_id))
+                            (?, ?, ?)""" % (player1_id, player2_id, victor_id))
         self.con.commit()
         self.close_connection()
 
@@ -161,15 +161,6 @@ class Database:
         self.open_connection()
         res = self.cur.execute("SELECT " + filter +
                                " FROM " + database + " " + sql_exec)
-        data = res.fetchall()
-        self.close_connection()
-        return data
-
-    def fetch_general_data(self, filter, table, sql_exec=""):
-        """Executes SQL statements for general select purpose"""
-        self.open_connection()
-        res = self.cur.execute("SELECT " + filter +
-                               " FROM " + table + " " + sql_exec)
         data = res.fetchall()
         self.close_connection()
         return data
