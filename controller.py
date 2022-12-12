@@ -821,7 +821,7 @@ class Controller:
     def save(self):
         """Saves the current state to a JSON-File"""
 
-        GameSave = self.db.get_GameSave(self.user['username'])
+        GameSave = self.db.get_game_save(self.user['username'])
 
         if GameSave is not False:
             self.db.remove_save(self.user['username'])
@@ -867,7 +867,7 @@ class Controller:
         # files = get_files(2)
         # name = 'GameSave.json'  # ggf Namen ändern
 
-        GameSave = self.db.get_GameSave(self.user['username'])
+        GameSave = self.db.get_game_save(self.user['username'])
 
         if not GameSave:
             self.view.clear_console()
