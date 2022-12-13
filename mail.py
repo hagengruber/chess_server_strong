@@ -20,7 +20,7 @@ class Mail:
     def create_code():
         """Creates Code for login"""
         # ToDo: Für starke Version: Code ist Bruteforcebar!
-        return random.randint(1000, 99999)
+        return random.randint(1000, 9999)
 
     def send_mail(self, destination, code):
 
