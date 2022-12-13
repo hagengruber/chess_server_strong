@@ -62,7 +62,7 @@ class Controller:
 
         mail = self.view.input("email address: ")
         password = self.view.input("password: ")
-        invalid_symbols = ['"', "'", ';', '-']
+        invalid_symbols = ['"', "'", ';', '--']
 
         for i in invalid_symbols:
             if i in mail:
