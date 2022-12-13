@@ -62,6 +62,13 @@ class Controller:
 
         mail = self.view.input("email address: ")
         password = self.view.input("password: ")
+        invalid_symbols = ['"', "'", ';', '-']
+
+        for i in invalid_symbols:
+            if i in mail:
+                return "Invalid credentials"
+            if i in password:
+                return "Invalid credentials"
 
         res = self.db.fetch_general_data("*", "Spieler", "WHERE mail='" + mail + "' and passwort='" + password + "';")
 
