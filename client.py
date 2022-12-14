@@ -13,10 +13,17 @@ class Client:
         self.go = False
 
     def write(self, s, stop):
+
         while True:
             if self.go:
                 message = input()
-                s.sendall(message.encode())
+                try:
+                    s.sendall(message.encode())
+                except OSError:
+                    return
+                except EOFError:
+                    return
+
                 self.go = False
 
             if stop():
@@ -24,40 +31,51 @@ class Client:
 
     def run(self):
 
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((self.host, self.port))
+        try:
 
-            stop_threads = False
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.connect((self.host, self.port))
 
-            threading.Thread(target=Client.write, args=(self, s, lambda: stop_threads,)).start()
+                stop_threads = False
 
-            while True:
+                threading.Thread(target=Client.write, args=(self, s, lambda: stop_threads,)).start()
 
-                ready = select.select([s], [], [], 1)
-                self.go = False
+                while True:
 
-                if ready[0]:
-                    message = s.recv(2048).decode()
+                    ready = select.select([s], [], [], 1)
+                    self.go = False
 
-                    print_message = message.split("\n")
+                    if ready[0]:
+                        message = s.recv(4096).decode()
 
-                    for i in print_message:
-                        print(i)
+                        print_message = message.split("\n")
 
-                    if message == '\033[H\033[J':
-                        if os.name == "posix":
-                            os.system("clear")
+                        for i in print_message:
+                            print(i)
+
+                        if message == '\033[H\033[J':
+                            if os.name == "posix":
+                                os.system("clear")
+                            else:
+                                os.system("cls")
+
+                            self.go = True
+
+                        elif message == 'password: ' or message == 'Enter a new password: ':
+                            password = getpass('')
+                            s.sendall(password.encode())
+
+                        elif message == 'Thanks for playing':
+                            stop_threads = True
+                            exit()
+
                         else:
-                            os.system("cls")
+                            self.go = True
 
-                        self.go = True
-
-                    elif message == 'password: ' or message == 'Enter a new password: ':
-                        password = getpass('')
-                        s.sendall(password.encode())
-
-                    else:
-                        self.go = True
+        except ConnectionResetError:
+            print("Connection to Server lost")
+            stop_threads = True
+            exit()
 
 
 if __name__ == "__main__":

@@ -384,7 +384,7 @@ class Controller:
 
                 elif user_input == '7':
                     # exit
-                    self.model.view.clear_console()
+                    self.view.print("Thanks for playing")
                     sys.exit()
 
                 else:
