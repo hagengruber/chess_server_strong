@@ -9,6 +9,7 @@ import pieces
 import math
 
 
+
 class AI:
     """Handles the behavior of the AI"""
 
@@ -98,8 +99,7 @@ class AI:
                     pass
 
                 # calcs the score of the current board
-                value = self.alpha_beta_pruning(
-                    temp, depth - 1, alpha, beta, False)
+                value = self.alpha_beta_pruning(temp, depth - 1, alpha, beta, False)
 
                 if change_position is not None:
                     temp[y_move].position = change_position
@@ -147,6 +147,7 @@ class AI:
 
     @staticmethod
     def get_score_pieces(current_game_state):
+
         """
         Returns the score of the current pieces
         """
@@ -219,16 +220,11 @@ class AI:
 
         piece = self.get_score_pieces(current_game_state)
 
-        pawn = self.score_position(
-            pieces.Pawn, self.Pawn_table, 100, current_game_state)
-        horse = self.score_position(
-            pieces.Horse, self.Horse_table, 320, current_game_state)
-        bishop = self.score_position(
-            pieces.Bishop, self.Bishop_table, 330, current_game_state)
-        rook = self.score_position(
-            pieces.Rook, self.Rook_table, 500, current_game_state)
-        queen = self.score_position(
-            pieces.Queen, self.Queen_table, 900, current_game_state)
+        pawn = self.score_position(pieces.Pawn, self.Pawn_table, 100, current_game_state)
+        horse = self.score_position(pieces.Horse, self.Horse_table, 320, current_game_state)
+        bishop = self.score_position(pieces.Bishop, self.Bishop_table, 330, current_game_state)
+        rook = self.score_position(pieces.Rook, self.Rook_table, 500, current_game_state)
+        queen = self.score_position(pieces.Queen, self.Queen_table, 900, current_game_state)
 
         return piece + pawn + rook + horse + bishop + queen
 
@@ -276,8 +272,7 @@ class AI:
                 pass
 
             # calcs the score of the current move
-            current_score = self.alpha_beta_pruning(
-                temp, 3, -math.inf, math.inf, True)
+            current_score = self.alpha_beta_pruning(temp, 3, -math.inf, math.inf, True)
 
             if change_position is not None:
                 temp[y_move].position = change_position
@@ -322,8 +317,7 @@ class AI:
 
         for i in process_moves:
 
-            processes.append(
-                m.Thread(target=self.calc_move, args=(i, queue, state,)))
+            processes.append(m.Thread(target=self.calc_move, args=(i, queue, state,)))
 
             try:
                 processes[100].start()

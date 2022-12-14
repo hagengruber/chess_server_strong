@@ -1,1 +1,1 @@
-# chess_server_weak
+# chess_server_strong
