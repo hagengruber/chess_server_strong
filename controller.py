@@ -36,10 +36,10 @@ class Controller:
         if int(user_input):
 
             if self.is_logged_in:
-                if user_input == '4':
-                    user_input = '6'
-                elif user_input == '5':
-                    user_input = '7'
+                if user_input == 4:
+                    user_input = 6
+                elif user_input == 5:
+                    user_input = 7
             else:
                 if user_input == 1:
                     user_input = 4
@@ -178,11 +178,9 @@ class Controller:
 
         m = Mail()
 
-        while True:
-            code = Mail.create_code()
+        # ToDo: Generate valid code
 
-            if self.check_password(code):
-                break
+        code = Mail.create_code()
 
         erg = m.send_mail(mail, code)
 
@@ -833,12 +831,12 @@ class Controller:
     def save(self):
         """Saves the current state to a JSON-File"""
 
-        GameSave = self.db.get_GameSave(self.user['username'])
+        game_save = self.db.get_GameSave(self.user['username'])
 
-        if GameSave is not False:
+        if game_save is not False:
             self.db.remove_save(self.user['username'])
 
-        GameSave = {"currently_playing": str(self.model.currently_playing),
+        game_save = {"currently_playing": str(self.model.currently_playing),
                     "show_symbols": self.model.show_symbols,
                     "board_state": {}}
 
@@ -857,30 +855,30 @@ class Controller:
                                            "moved": None,
                                            "position": None}})
 
-        GameSave["board_state"].update(json_dict)
+        game_save["board_state"].update(json_dict)
 
-        GameSave = str(GameSave).replace("'", '"')
+        game_save = str(game_save).replace("'", '"')
 
-        save_id = self.db.add_save(GameSave)
+        save_id = self.db.add_save(game_save)
         self.db.change_saveid(self.db.get_id(self.user['username']), save_id)
 
     def load(self):
         """Loads a savestate"""
 
-        GameSave = self.db.get_GameSave(self.user['username'])
+        game_save = self.db.get_GameSave(self.user['username'])
 
-        if not GameSave:
+        if not game_save:
             self.view.clear_console()
             self.view.print_menu(True, "\nNo saved Game found\n\n")
             return False
 
-        GameSave = GameSave.replace('False', 'false').replace(
+        game_save = game_save.replace('False', 'false').replace(
             'True', 'true').replace('None', 'null')
 
-        GameSave = json.loads(GameSave)
+        game_save = json.loads(game_save)
 
-        self.model.currently_playing = GameSave['currently_playing']
-        self.model.show_symbols = GameSave['show_symbols']
+        self.model.currently_playing = game_save['currently_playing']
+        self.model.show_symbols = game_save['show_symbols']
         self.load_game = True
         self.user_ai = AI(self.model, self.view, "Black", "White", self)
 
@@ -889,27 +887,27 @@ class Controller:
 
         for i in range(64):
             # Moved wird nicht übernommen
-            if GameSave['board_state'][str(i)]['piece'] == 'None':
+            if game_save['board_state'][str(i)]['piece'] == 'None':
                 self.model.board_state[i] = None
 
             else:
-                if GameSave['board_state'][str(i)]['piece'] == 'Rooks':
-                    self.model.board_state[i] = Rook(GameSave['board_state'][str(i)]['colour'],
+                if game_save['board_state'][str(i)]['piece'] == 'Rooks':
+                    self.model.board_state[i] = Rook(game_save['board_state'][str(i)]['colour'],
                                                      i, self.model, ['moved'])
-                if GameSave['board_state'][str(i)]['piece'] == 'Horses':
-                    self.model.board_state[i] = Horse(GameSave['board_state'][str(i)]['colour'],
+                if game_save['board_state'][str(i)]['piece'] == 'Horses':
+                    self.model.board_state[i] = Horse(game_save['board_state'][str(i)]['colour'],
                                                       i, self.model, ['moved'])
-                if GameSave['board_state'][str(i)]['piece'] == 'Bishops':
-                    self.model.board_state[i] = Bishop(GameSave['board_state'][str(i)]['colour'],
+                if game_save['board_state'][str(i)]['piece'] == 'Bishops':
+                    self.model.board_state[i] = Bishop(game_save['board_state'][str(i)]['colour'],
                                                        i, self.model, ['moved'])
-                if GameSave['board_state'][str(i)]['piece'] == 'Queens':
-                    self.model.board_state[i] = Queen(GameSave['board_state'][str(i)]['colour'],
+                if game_save['board_state'][str(i)]['piece'] == 'Queens':
+                    self.model.board_state[i] = Queen(game_save['board_state'][str(i)]['colour'],
                                                       i, self.model, ['moved'])
-                if GameSave['board_state'][str(i)]['piece'] == 'Kings':
-                    self.model.board_state[i] = King(GameSave['board_state'][str(i)]['colour'],
+                if game_save['board_state'][str(i)]['piece'] == 'Kings':
+                    self.model.board_state[i] = King(game_save['board_state'][str(i)]['colour'],
                                                      i, self.model, ['moved'])
-                if GameSave['board_state'][str(i)]['piece'] == 'Pawns':
-                    self.model.board_state[i] = Pawn(GameSave['board_state'][str(i)]['colour'],
+                if game_save['board_state'][str(i)]['piece'] == 'Pawns':
+                    self.model.board_state[i] = Pawn(game_save['board_state'][str(i)]['colour'],
                                                      i, self.model, ['moved'])
 
         self.view.last_board = self.model.get_copy_board_state()
@@ -937,12 +935,12 @@ class Controller:
             self.is_logged_in = False
             return "Logout successful"
 
-    def check_input(self, input):
-        input = input.upper()
-        if re.match('^Y', input) or re.match('YES', input):
+    def check_input(self, user_input):
+        user_input = user_input.upper()
+        if re.match('^Y', user_input) or re.match('YES', user_input):
             return 1
 
-        elif re.match('^N', input) or re.match('NO', input):
+        elif re.match('^N', user_input) or re.match('NO', user_input):
             return 0
 
         else:
@@ -950,10 +948,11 @@ class Controller:
                 'Please answer the question with "yes" or "no"')
             return 2
 
+    @staticmethod
     def hash_password(pw):
         encoded = pw.encode()
-        hash = hl.sha512(encoded)
-        return hash.hexdigest()
+        password_hash = hl.sha512(encoded)
+        return password_hash.hexdigest()
 
     def check_password(self, pw):
         u = 0
@@ -968,7 +967,7 @@ class Controller:
                  'm', 'n', '0', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
         numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         specials = ['!', '?', '§', '$', '%', '&', '#', '@']
-        forbiddden = ['']
+        forbidden = ['']
 
         for e in pw:
             if e in upper:
@@ -983,7 +982,7 @@ class Controller:
             if e in specials:
                 s += 1
 
-            if e in forbiddden:
+            if e in forbidden:
                 self.view.invalid_input(
                     "Password contains a forbidden Character")
                 return False
