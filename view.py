@@ -20,11 +20,9 @@ class View:
         if text is not None:
             self.print(text)
 
-        self.socket.sendall("r".encode())
-        return self.socket.recv(1024).decode().replace('\n', '')[:-1]
+        return self.socket.recv(1024).decode()
 
     def print(self, text):
-        self.socket.sendall("p".encode())
         self.socket.sendall(text.encode())
 
     def update_board(self, state=""):
