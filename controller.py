@@ -304,8 +304,6 @@ class Controller:
     def get_menu_choice(self, user_input):
         """Gets input from user and processes the input"""
 
-        print("User input: " + str(user_input))
-
         try:
 
             type(int(user_input)) == int

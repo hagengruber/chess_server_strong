@@ -2,6 +2,7 @@ import socket
 import select
 import threading
 import os
+from getpass import getpass
 
 
 class Client:
@@ -9,12 +10,14 @@ class Client:
     def __init__(self):
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = 8080
+        self.go = False
 
-    @staticmethod
-    def write(s, stop):
+    def write(self, s, stop):
         while True:
-            message = input()
-            s.sendall(message.encode())
+            if self.go:
+                message = input()
+                s.sendall(message.encode())
+                self.go = False
 
             if stop():
                 break
@@ -26,14 +29,20 @@ class Client:
 
             stop_threads = False
 
-            threading.Thread(target=Client.write, args=(s, lambda: stop_threads,)).start()
+            threading.Thread(target=Client.write, args=(self, s, lambda: stop_threads,)).start()
 
             while True:
 
                 ready = select.select([s], [], [], 1)
+                self.go = False
 
                 if ready[0]:
                     message = s.recv(2048).decode()
+
+                    print_message = message.split("\n")
+
+                    for i in print_message:
+                        print(i)
 
                     if message == '\033[H\033[J':
                         if os.name == "posix":
@@ -41,10 +50,14 @@ class Client:
                         else:
                             os.system("cls")
 
-                    message = message.split("\n")
+                        self.go = True
 
-                    for i in message:
-                        print(i)
+                    elif message == 'password: ' or message == 'Enter a new password: ':
+                        password = getpass('')
+                        s.sendall(password.encode())
+
+                    else:
+                        self.go = True
 
 
 if __name__ == "__main__":
