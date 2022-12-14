@@ -39,7 +39,8 @@ class Database:
     def add_save(self, dataname):
         """Adds a savestate to the 'Speicherstände' table"""
         self.open_connection()
-        self.cur.execute("""INSERT INTO Speicherstände (name) VALUES ('%s')""" % dataname)
+        self.cur.execute(
+            """INSERT INTO Speicherstände (name) VALUES ('%s')""" % dataname)
         self.con.commit()
         pk = self.cur.lastrowid
         self.close_connection()
@@ -48,13 +49,15 @@ class Database:
     def remove_save(self, username):
         self.open_connection()
 
-        res = self.cur.execute("""SELECT saveid FROM Spieler WHERE id = '%s'""" % self.get_id(username))
+        res = self.cur.execute(
+            """SELECT saveid FROM Spieler WHERE id = '%s'""" % self.get_id(username))
 
         save_id = res.fetchall()[0][0]
 
         self.change_saveid(self.get_id(username), 0, end_connection=False)
 
-        self.cur.execute("""DELETE FROM Speicherstände WHERE id='%s'""" % save_id)
+        self.cur.execute(
+            """DELETE FROM Speicherstände WHERE id='%s'""" % save_id)
         self.con.commit()
         self.close_connection()
 
@@ -85,7 +88,8 @@ class Database:
     def change_saveid(self, player_id, save_id, end_connection=True):
         """Changes the saveid of a given player to the id of a given savestate"""
         self.open_connection()
-        self.cur.execute("""UPDATE Spieler SET saveid = '%s' WHERE id = '%s'""" % (save_id, player_id))
+        self.cur.execute(
+            """UPDATE Spieler SET saveid = '%s' WHERE id = '%s'""" % (save_id, player_id))
         self.con.commit()
         if end_connection:
             self.close_connection()
@@ -189,17 +193,20 @@ class Database:
     def update_general_data(self, table, column, content, sql_exec=""):
         """Executes SQL statements for general update purpose"""
         self.open_connection()
-        self.cur.execute("UPDATE " + table + " SET " + column + "=" + content + " " + sql_exec)
+        self.cur.execute("UPDATE " + table + " SET " +
+                         column + "=" + content + " " + sql_exec)
         self.con.commit()
         self.close_connection()
 
     def get_GameSave(self, username):
 
         self.open_connection()
-        res = self.cur.execute("""SELECT saveid FROM Spieler WHERE nutzername = '%s'""" % username)
+        res = self.cur.execute(
+            """SELECT saveid FROM Spieler WHERE nutzername = '%s'""" % username)
         save_game = res.fetchall()[0][0]
 
-        res = self.cur.execute("""SELECT name FROM Speicherstände WHERE id = '%s'""" % save_game)
+        res = self.cur.execute(
+            """SELECT name FROM Speicherstände WHERE id = '%s'""" % save_game)
 
         data = res.fetchall()
         self.close_connection()

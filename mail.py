@@ -23,14 +23,14 @@ class Mail:
         return random.randint(1000, 99999)
 
     def send_mail(self, destination, code):
-
         """Sends mail"""
 
         destination = [destination]
         text_subtype = 'plain'
         subject = "Activation Code"
 
-        content = ' Thanks for your registration! Your activation Code is: ' + str(code)
+        content = ' Thanks for your registration! Your activation Code is: ' + \
+            str(code)
 
         msg = MIMEText(content, text_subtype)
         msg['Subject'] = subject
