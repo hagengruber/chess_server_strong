@@ -136,7 +136,6 @@ class Controller:
             password2 = temp[2]
 
             try:
-
                 if mail.split("@")[1] == "stud.th-deg.de" or mail.split("@")[1] == "th-deg.de":
                     valid_th_mail = True
                 else:
@@ -148,6 +147,7 @@ class Controller:
             if len(mail) == 0 or not valid_th_mail:
                 self.view.invalid_input(
                     "Your input was not a valid email address\n")
+                res = "bla"
                 continue
 
             res = self.db.fetch_general_data(
@@ -158,22 +158,31 @@ class Controller:
                     "This email address is already taken\n")
                 continue
 
-            if len(password) == 0:
+            if len(password) == 0 or len(password2) == 0:
                 self.view.invalid_input(
-                    "Your input was not a valid password\n")
+                    "Please insert a valid Password\n")
                 continue
 
             if not self.check_password(password):
+                res = "bla"
                 continue
 
             if password != password2:
+                res = "bla"
+                self.view.invalid_input(
+                    "Your Passwords doesnt Match each other\n")
                 continue
 
         username = mail.split(".")[0][0] + "." + \
             mail.split(".")[1].split("@")[0]
 
         m = Mail()
-        code = Mail.create_code()
+
+        while True:
+            code = Mail.create_code()
+
+            if self.check_password(code):
+                break
 
         erg = m.send_mail(mail, code)
 
@@ -181,7 +190,7 @@ class Controller:
             self.view.print(erg)
             return erg
 
-        password = Controller.hash_password(password)
+        password = self.hash_password(password)
 
         self.db.add_player(mail, password, username, code)
 
@@ -195,7 +204,7 @@ class Controller:
 
         temp = self.view.get_credentials(1)
         mail = temp[0]
-        password = Controller.hash_password(temp[1])
+        password = self.hash_password(temp[1])
         res = self.db.fetch_general_data(
             "*", "Spieler", "WHERE mail='" + mail + "' and passwort='" + password + "';")
 
@@ -343,7 +352,7 @@ class Controller:
 
         if re.match('^--', move):
             if move[2:] == "STATS":
-                # eid = self.user['enemy']
+                #eid = self.user['enemy']
                 pers = self.db.fetch_public_userdata(
                     14)  # eid where nutzername = enemy
 
@@ -928,12 +937,12 @@ class Controller:
             self.is_logged_in = False
             return "Logout successful"
 
-    def check_input(self, user_input):
-        user_input = user_input.upper()
-        if re.match('^Y', user_input) or re.match('YES', user_input):
+    def check_input(self, input):
+        input = input.upper()
+        if re.match('^Y', input) or re.match('YES', input):
             return 1
 
-        elif re.match('^N', user_input) or re.match('NO', user_input):
+        elif re.match('^N', input) or re.match('NO', input):
             return 0
 
         else:
@@ -941,45 +950,46 @@ class Controller:
                 'Please answer the question with "yes" or "no"')
             return 2
 
-    @staticmethod
     def hash_password(pw):
         encoded = pw.encode()
-        hash_password = hl.sha512(encoded)
-        return hash_password.hexdigest()
+        hash = hl.sha512(encoded)
+        return hash.hexdigest()
 
     def check_password(self, pw):
+        u = 0
+        l = 0
+        n = 0
+        s = 0
+        f = 0
+
         upper = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
                  'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
         lower = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
                  'm', 'n', '0', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
         numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-        specials = ['!', '?', '§', '$', '%', '&', '#']
-        forbidden = ['@']
-
-        upper_count = 0
-        lower_count = 0
-        number_count = 0
-        special_count = 0
+        specials = ['!', '?', '§', '$', '%', '&', '#', '@']
+        forbiddden = ['']
 
         for e in pw:
             if e in upper:
-                upper_count += 1
+                u += 1
 
             if e in lower:
-                lower_count += 1
+                l += 1
 
             if e in numbers:
-                number_count += 1
+                n += 1
 
             if e in specials:
-                special_count += 1
+                s += 1
 
-            if e in forbidden:
-                self.view.invalid_input("Password contains a forbidden Character")
+            if e in forbiddden:
+                self.view.invalid_input(
+                    "Password contains a forbidden Character")
                 return False
 
-        if upper_count >= 2 and lower_count >= 2 and number_count >= 2 and special_count >= 2:
-            if len(pw) >= 8:
+        if u >= 2 and l >= 2 and n >= 2 and s >= 2:
+            if len(pw) >= 10:
                 self.view.print("This is a valid Password")
                 return True
             else:
