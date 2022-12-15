@@ -36,10 +36,10 @@ class Controller:
         if int(user_input):
 
             if self.is_logged_in:
-                if user_input == 4:
-                    user_input = 6
-                elif user_input == 5:
-                    user_input = 7
+                if user_input == '4':
+                    user_input = '6'
+                elif user_input == '5':
+                    user_input = '7'
             else:
                 if user_input == 1:
                     user_input = 4
@@ -131,7 +131,7 @@ class Controller:
 
             temp = self.view.get_credentials(0)
 
-            mail = temp[0]  # self.view.input("Enter your email address: ")
+            mail = temp[0]
             password = temp[1]
             password2 = temp[2]
 
@@ -178,9 +178,11 @@ class Controller:
 
         m = Mail()
 
-        # ToDo: Generate valid code
+        while True:
+            code = Mail.create_code()
 
-        code = Mail.create_code()
+            if self.check_password(code):
+                break
 
         erg = m.send_mail(mail, code)
 
@@ -188,7 +190,7 @@ class Controller:
             self.view.print(erg)
             return erg
 
-        password = self.hash_password(password)
+        password = Controller.hash_password(password)
 
         self.db.add_player(mail, password, username, code)
 
@@ -200,15 +202,38 @@ class Controller:
         if self.is_logged_in:
             return "You are already logged in as " + str(self.user['username'])
 
-        temp = self.view.get_credentials(1)
-        mail = temp[0]
-        password = self.hash_password(temp[1])
-        res = self.db.fetch_general_data(
-            "*", "Spieler", "WHERE mail='" + mail + "' and passwort='" + password + "';")
+        res = None
+        mail = None
 
-        if len(res) == 0:
-            # ToDo: CWE 549
-            return "Invalid credentials"
+        while True or res[0][10] != 0:
+
+            temp = self.view.get_credentials(1)
+            mail = temp[0]
+            password = Controller.hash_password(temp[1])
+
+            res = self.db.fetch_general_data(
+                    "*", "Spieler", "WHERE mail='" + mail + "';")
+
+            if len(res) == 0:
+                # ToDo: CWE 200
+                self.is_logged_in = False
+                return "There is no User called "+mail+" Please Register First"
+
+            else:
+                if res == self.db.fetch_general_data(
+                "*", "Spieler", "WHERE mail='" + mail + "' and passwort='" + password + "';"):
+                    
+                    self.db.set_unlocked(mail)
+                    break
+
+                elif self.db.get_locked(mail) == 0:
+                    self.is_logged_in = False
+                    
+                    return "Your account has been locked due to too many failed attempts.\n Please contact chessonline@team.dev for an unlock request\n"
+
+                else:
+                    self.db.set_locked(mail)
+                    self.view.invalid_input("Wrong Credentials. Please Try again")  
 
         if res[0][9] is not None:
             code = self.view.get_activation_code()
@@ -951,7 +976,7 @@ class Controller:
     @staticmethod
     def hash_password(pw):
         encoded = pw.encode()
-        password_hash = hl.sha512(encoded)
+        password_hash = hl.sha3_512(encoded)
         return password_hash.hexdigest()
 
     def check_password(self, pw):
@@ -959,7 +984,6 @@ class Controller:
         l = 0
         n = 0
         s = 0
-        f = 0
 
         upper = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
                  'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
@@ -967,7 +991,7 @@ class Controller:
                  'm', 'n', '0', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
         numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         specials = ['!', '?', '§', '$', '%', '&', '#', '@']
-        forbidden = ['']
+        forbidden = ['"', "--", "'", ";"]
 
         for e in pw:
             if e in upper:
