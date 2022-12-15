@@ -217,3 +217,31 @@ class Database:
             return False
 
         return data
+
+    def set_locked(self, mail):
+        """Updates Blocked in Userdata"""
+        self.open_connection()
+        res = self.cur.execute(
+            """update Spieler set locked = locked - 1 WHERE mail = '%s'""" % mail)
+        self.con.commit()
+        self.close_connection()
+
+    def get_locked(self, mail):
+        """Gets the id from Username"""
+        self.open_connection()
+        res = self.cur.execute("""SELECT locked 
+                                  FROM Spieler WHERE mail = '%s'""" % mail)
+        data = res.fetchall()
+        self.close_connection()
+
+        data = int(data[0][0])
+
+        return data
+
+    def set_unlocked(self, mail):
+        """Updates Blocked in Userdata"""
+        self.open_connection()
+        res = self.cur.execute(
+            """update Spieler set locked = 3 WHERE mail = '%s'""" % mail)
+        self.con.commit()
+        self.close_connection()
