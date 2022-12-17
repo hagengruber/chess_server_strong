@@ -3,22 +3,28 @@ import select
 import threading
 import os
 from getpass import getpass
+import ssl
 
 
 class Client:
 
     def __init__(self):
-        self.host = socket.gethostbyname(socket.gethostname())
-        self.port = 8080
+        self.host = "192.168.1.112"
+        self.port = 12344
         self.go = False
+        self.server_sni_hostname = 'Chess'
+        self.server_cert = './certs/server.crt'
+        self.client_cert = './certs/client.crt'
+        self.client_key = './certs/client.key'
+        self.conn = None
 
-    def write(self, s, stop):
+    def write(self, stop):
 
         while True:
             if self.go:
                 message = input()
                 try:
-                    s.sendall(message.encode())
+                    self.conn.sendall(message.encode())
                 except OSError:
                     return
                 except EOFError:
@@ -33,20 +39,25 @@ class Client:
 
         try:
 
+            context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=self.server_cert)
+            context.load_cert_chain(certfile=self.client_cert, keyfile=self.client_key)
+
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.connect((self.host, self.port))
+
+                self.conn = context.wrap_socket(s, server_side=False, server_hostname=self.server_sni_hostname)
+                self.conn.connect((self.host, self.port))
 
                 stop_threads = False
 
-                threading.Thread(target=Client.write, args=(self, s, lambda: stop_threads,)).start()
+                threading.Thread(target=Client.write, args=(self, lambda: stop_threads,)).start()
 
                 while True:
 
-                    ready = select.select([s], [], [], 1)
+                    ready = select.select([self.conn], [], [], 1)
                     self.go = False
 
                     if ready[0]:
-                        message = s.recv(4096).decode()
+                        message = self.conn.recv(4096).decode()
 
                         print_message = message.split("\n")
 
@@ -63,7 +74,7 @@ class Client:
 
                         elif message == 'password: ' or message == 'Enter a new password: ':
                             password = getpass('')
-                            s.sendall(password.encode())
+                            self.conn.sendall(password.encode())
 
                         elif message == 'Thanks for playing':
                             stop_threads = True

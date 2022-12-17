@@ -10,11 +10,14 @@ import pyfiglet
 class View:
     """Class that handles everything for the module"""
 
-    def __init__(self, socket):
-        self.socket = socket
+    def __init__(self):
+        self.socket = None
         self.model = None
         self.last_board = None
         self.count = 1
+
+    def init_socket(self, socket):
+        self.socket = socket
 
     def input(self, text=None):
         if text is not None:

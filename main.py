@@ -9,6 +9,7 @@ from multiprocessing import Queue
 from multiprocessing import Lock
 from model import Model
 from queue import Empty
+import ssl
 
 
 class App:
@@ -19,6 +20,11 @@ class App:
         self.ip = socket.gethostbyname(socket.gethostname())
         self.host = self.ip
         self.port = 8080
+
+        self.server_cert = './certs/server.crt'
+        self.server_key = './certs/server.key'
+        self.client_certs = './certs/client.crt'
+
         self.threads = -1
         self.lobby = Queue()
         self.lobby.put({'lobby': [], 'games': []})
@@ -32,16 +38,15 @@ class App:
         self.lock = Lock()
 
     @staticmethod
-    def connect_and_run(conn, lobby, threads, lock):
+    def connect_and_run(s, connect, lobby, threads, lock):
         """Handles the Game for every User"""
 
-        model = Model(conn, lobby, threads, lock)
+        model = Model(s, connect, lobby, threads, lock)
         model.controller.model = model
         model.view.model = model
-        model.view.clear_console()
 
         try:
-            model.view.print_menu(False)
+            model.controller.run()
         finally:
             # If a User forces the disconnect (e.g. with an error) the mutex may be still locked
             try:
@@ -64,12 +69,13 @@ class App:
                 while self.connect.qsize() != 0:
                     self.connect.get()
                     self.threads += 1
-                    m.Process(target=App.listen, args=(s, self.connect, self.lobby, self.threads, self.lock)).start()
+                    m.Process(target=App.listen, args=(s, self.connect, self.lobby, self.threads, self.lock,
+                                                       self.server_cert, self.server_key, self.client_certs)).start()
 
     @staticmethod
     def check_launch_lobby(lock, game):
 
-        """Checks if two users a in the Lobby and creates a game room"""
+        """Checks if two users are in the Lobby and creates a game room"""
 
         # built-in function because the function has to be static due to the pickle error
         def release_lock(lock_f):
@@ -163,16 +169,10 @@ class App:
             release_lock(lock)
 
     @staticmethod
-    def listen(s, connect, lobby, threads, lock):
+    def listen(s, connect, lobby, threads, lock, server_cert, server_key, client_certs):
         """Waits for a connection from a Client and starts the game loop"""
-        conn, addr = s.accept()
-        with conn:
-            connect.put(True)
-            print("Server is connected with port " + str(addr))
-            welcome = "Hello. You are connected to the Chess Server. Your port is " + str(addr[1]) + '\n\n'
-            conn.sendall(welcome.encode())
 
-            m.Process(target=App.connect_and_run, args=(conn, lobby, threads, lock)).start()
+        m.Process(target=App.connect_and_run, args=(s, connect, lobby, threads, lock)).start()
 
 
 if __name__ == "__main__":

@@ -10,6 +10,7 @@ import database
 import re
 from mail import Mail
 from queue import Empty
+import ssl
 
 
 class Controller:
@@ -17,8 +18,9 @@ class Controller:
 
     # SSL Zertifikat: https://www.howtoforge.de/anleitung/howto-selbstsigniertes-ssl-zertifikat-erstellen/
 
-    def __init__(self, view, socket, games, num_of_thread, lock):
+    def __init__(self, view, socket, connect, games, num_of_thread, lock):
         self.socket = socket
+        self.connect = connect
         self.model = None
         self.view = view
         self.ai = None
@@ -29,6 +31,27 @@ class Controller:
         self.lock = lock
         self.db = database.Database()
         self.is_logged_in = False
+
+    def run(self):
+
+        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        context.verify_mode = ssl.CERT_REQUIRED
+        context.load_cert_chain(certfile='./certs/server.crt', keyfile='./certs/server.key')
+        context.load_verify_locations(cafile='./certs/client.crt')
+
+        new_socket, addr = self.socket.accept()
+        conn = context.wrap_socket(new_socket, server_side=True)
+
+        with conn:
+            self.connect.put(True)
+            print("Server is connected with port " + str(addr))
+            welcome = "Hello. You are connected to the Chess Server. Your port is " + str(addr[1]) + '\n\n'
+            conn.sendall(welcome.encode())
+
+            self.view.init_socket(conn)
+
+            self.view.print_menu(False)
+
 
     def logout(self):
         """Handles the logout of the user"""
