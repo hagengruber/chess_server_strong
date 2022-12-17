@@ -2,6 +2,7 @@ import socket
 import time
 from tqdm import tqdm
 
+
 class brute_force:
 
     @staticmethod
@@ -62,6 +63,7 @@ class brute_force:
             except ConnectionAbortedError:
                 s.close()
                 continue
+
 
 if __name__ == "__main__":
     brute_force.run()
