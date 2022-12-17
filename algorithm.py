@@ -292,6 +292,7 @@ class AI:
         """
 
         self.view.print("AI thinks...")
+        print("AI thinks")
 
         # The current board self.model.board_state shouldn't be overwritten
         # Therefore state is a copy of the Value and not a copy of the Instance

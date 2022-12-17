@@ -19,6 +19,7 @@ class View:
     def input(self, text=None):
         if text is not None:
             self.print(text)
+
         return self.socket.recv(1024).decode().replace('\n', '')[:-1]
 
     def print(self, text):
