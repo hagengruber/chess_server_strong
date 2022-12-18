@@ -5,34 +5,22 @@
 from algorithm import AI
 import json
 import sys
-import os
-import pathlib
 from pieces import *
 import database
 import re
 from mail import Mail
 from queue import Empty
-
-# controller queue nicht username uniwuq where name = userid
-# get queue content nicht prarameter ändern
-# registrierung controller 78 def registtration
-# zuerst registrieren, dann login und dann spielen
-
-
-def get_files(i):
-    """Get Files from Directory"""
-    if i == 1:
-        return pathlib.Path().absolute()
-    else:
-        dirPath = pathlib.Path().absolute()
-        return [f for f in os.listdir(dirPath) if os.path.isfile(os.path.join(dirPath, f))]
+import ssl
 
 
 class Controller:
     """Class that handles everything for the module"""
 
-    def __init__(self, view, socket, games, num_of_thread, lock):
+    # SSL Zertifikat: https://www.howtoforge.de/anleitung/howto-selbstsigniertes-ssl-zertifikat-erstellen/
+
+    def __init__(self, view, socket, connect, games, num_of_thread, lock):
         self.socket = socket
+        self.connect = connect
         self.model = None
         self.view = view
         self.ai = None
@@ -43,6 +31,27 @@ class Controller:
         self.lock = lock
         self.db = database.Database()
         self.is_logged_in = False
+
+    def run(self):
+
+        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        context.verify_mode = ssl.CERT_REQUIRED
+        context.load_cert_chain(certfile='./certs/server.crt', keyfile='./certs/server.key')
+        context.load_verify_locations(cafile='./certs/client.crt')
+
+        new_socket, addr = self.socket.accept()
+        conn = context.wrap_socket(new_socket, server_side=True)
+
+        with conn:
+            self.connect.put(True)
+            print("Server is connected with port " + str(addr))
+            welcome = "Hello. You are connected to the Chess Server. Your port is " + str(addr[1]) + '\n\n'
+            conn.sendall(welcome.encode())
+
+            self.view.init_socket(conn)
+
+            self.view.print_menu(False)
+
 
     def logout(self):
         """Handles the logout of the user"""
@@ -384,7 +393,7 @@ class Controller:
 
                 elif user_input == '7':
                     # exit
-                    self.model.view.clear_console()
+                    self.view.print("Thanks for playing")
                     sys.exit()
 
                 else:
@@ -821,18 +830,18 @@ class Controller:
     def save(self):
         """Saves the current state to a JSON-File"""
 
-        GameSave = self.db.get_GameSave(self.user['username'])
+        game_save = self.db.get_GameSave(self.user['username'])
 
-        if GameSave is not False:
+        if game_save is not False:
             self.db.remove_save(self.user['username'])
 
-        GameSave = {"currently_playing": str(self.model.currently_playing),
+        game_save = {"currently_playing": str(self.model.currently_playing),
                     "show_symbols": self.model.show_symbols,
                     "board_state": {},
                     "Ai": False}
 
         if self.model.ai:
-            GameSave.update({'Ai': True})
+            game_save.update({'Ai': True})
 
         json_dict = {}
         for i in range(64):
@@ -849,80 +858,74 @@ class Controller:
                                            "moved": None,
                                            "position": None}})
 
-        GameSave["board_state"].update(json_dict)
+        game_save["board_state"].update(json_dict)
 
         # path = str(get_files(1))
-        # name = "\\GameSave.json"
+        # name = "\\game_save.json"
 
-        GameSave = str(GameSave).replace("'", '"')
+        game_save = str(game_save).replace("'", '"')
 
-        save_id = self.db.add_save(GameSave)
+        save_id = self.db.add_save(game_save)
         self.db.change_saveid(self.db.get_id(self.user['username']), save_id)
-
-        # with open(path + name, "w") as json_file:
-            # json.dump(GameSave, json_file)
 
     def load(self):
         """Loads a savestate"""
-        # files = get_files(2)
-        # name = 'GameSave.json'  # ggf Namen ändern
+        game_save = self.db.get_GameSave(self.user['username'])
 
-        GameSave = self.db.get_GameSave(self.user['username'])
-
-        if not GameSave:
+        if not game_save:
             self.view.clear_console()
             self.view.print_menu(True, "\nNo saved Game found\n\n")
             return False
 
-        GameSave = GameSave.replace('False', 'false').replace('True', 'true').replace('None', 'null')
+        game_save = game_save.replace('False', 'false').replace('True', 'true').replace('None', 'null')
 
-        GameSave = json.loads(GameSave)
+        game_save = json.loads(game_save)
         # den aktuellen spieler abfragen
 
-        self.model.currently_playing = GameSave['currently_playing']
-        self.model.show_symbols = GameSave['show_symbols']
+        self.model.currently_playing = game_save['currently_playing']
+        self.model.show_symbols = game_save['show_symbols']
         self.load_game = True
         self.user_ai = AI(self.model, self.view, "Black", "White", self)
 
-        if 'Ai' in GameSave:
+        if 'Ai' in game_save:
             self.ai = True
             self.model.ai = True
 
         for i in range(64):
             # Moved wird nicht übernommen
-            if GameSave['board_state'][str(i)]['piece'] == 'None':
+            if game_save['board_state'][str(i)]['piece'] == 'None':
                 self.model.board_state[i] = None
 
             else:
-                if GameSave['board_state'][str(i)]['piece'] == 'Rooks':
-                    self.model.board_state[i] = Rook(GameSave['board_state'][str(i)]['colour'],
+                if game_save['board_state'][str(i)]['piece'] == 'Rooks':
+                    self.model.board_state[i] = Rook(game_save['board_state'][str(i)]['colour'],
                                                      i, self.model)
-                if GameSave['board_state'][str(i)]['piece'] == 'Horses':
-                    self.model.board_state[i] = Horse(GameSave['board_state'][str(i)]['colour'],
+                if game_save['board_state'][str(i)]['piece'] == 'Horses':
+                    self.model.board_state[i] = Horse(game_save['board_state'][str(i)]['colour'],
                                                       i, self.model)
-                if GameSave['board_state'][str(i)]['piece'] == 'Bishops':
-                    self.model.board_state[i] = Bishop(GameSave['board_state'][str(i)]['colour'],
+                if game_save['board_state'][str(i)]['piece'] == 'Bishops':
+                    self.model.board_state[i] = Bishop(game_save['board_state'][str(i)]['colour'],
                                                        i, self.model)
-                if GameSave['board_state'][str(i)]['piece'] == 'Queens':
-                    self.model.board_state[i] = Queen(GameSave['board_state'][str(i)]['colour'],
+                if game_save['board_state'][str(i)]['piece'] == 'Queens':
+                    self.model.board_state[i] = Queen(game_save['board_state'][str(i)]['colour'],
                                                       i, self.model)
-                if GameSave['board_state'][str(i)]['piece'] == 'Kings':
-                    self.model.board_state[i] = King(GameSave['board_state'][str(i)]['colour'],
+                if game_save['board_state'][str(i)]['piece'] == 'Kings':
+                    self.model.board_state[i] = King(game_save['board_state'][str(i)]['colour'],
                                                      i, self.model)
-                if GameSave['board_state'][str(i)]['piece'] == 'Pawns':
-                    self.model.board_state[i] = Pawn(GameSave['board_state'][str(i)]['colour'],
+                if game_save['board_state'][str(i)]['piece'] == 'Pawns':
+                    self.model.board_state[i] = Pawn(game_save['board_state'][str(i)]['colour'],
                                                      i, self.model)
 
         self.view.last_board = self.model.get_copy_board_state()
         return True
 
-    def check_input(self, input):
+    def check_input(self, user_input):
 
-        input = input.upper()
-        if re.match('^Y', input) or re.match('YES', input):
+        user_input = user_input.upper()
+        if re.match('^Y', user_input) or re.match('YES', user_input):
             return 1
 
-        elif re.match('^N', input) or re.match('NO', input):
+        elif re.match('^N', user_input) or re.match('NO', user_input):
             return 0
 
         else:
