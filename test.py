@@ -101,8 +101,8 @@ def check_password(pw):
         print("unsave")
 
 
-#check_password("P@ssw0rD!#1")
+check_password("P@ssw0rD!#1")
 #check_password("Hallo123")
-hash_password("P@ssw0rd!#")
-hash_password("P@ssw0rd!'")
+hash_password("P@ssw0rD!#1")
+#hash_password("P@ssw0rd!'")
 #registration(1)

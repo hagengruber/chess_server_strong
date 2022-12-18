@@ -980,6 +980,7 @@ class Controller:
         return password_hash.hexdigest()
 
     def check_password(self, pw):
+        pw = str(pw)
         u = 0
         l = 0
         n = 0
