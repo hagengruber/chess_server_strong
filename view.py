@@ -159,7 +159,7 @@ class View:
         temp = []
         self.print('\nE-mail address: ')
         temp.append(self.input())
-        self.print('\nPassword: ')
+        self.print('\nPassword ("A-Z", "a-z" "0-9", "!" "?" "$" "&" "%" "#" "@"): ')
         temp.append(self.input())
 
         if i == 0:

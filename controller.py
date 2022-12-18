@@ -12,9 +12,14 @@ import json
 import sys
 import re
 
-
 class Controller:
     """Class that handles everything for the module"""
+
+    @staticmethod
+    def hash_password(pw):
+        encoded = pw.encode()
+        password_hash = hl.sha3_512(encoded)
+        return password_hash.hexdigest()
 
     def __init__(self, view, socket, games, num_of_thread, lock):
         self.socket = socket
@@ -30,10 +35,35 @@ class Controller:
         self.db = database.Database()
         self.is_logged_in = False
 
+    def check_input(self, user_input):
+        user_input = user_input.upper()
+
+        if self.check_input_length(user_input):
+
+            if re.match('^Y', user_input) or re.match('YES', user_input):
+                return 1
+
+            elif re.match('^N', user_input) or re.match('NO', user_input):
+                return 0
+
+            else:
+                self.view.invalid_input(
+                    'Please answer the question with "yes" or "no"')
+                return 2
+
+        else:
+            self.view.invalid_input(
+                    'Please answer the question with "yes" or "no"')
+            return 2
+
+    def check_input_length(self, user_input):
+        if len(user_input) < 12:
+            return True
+
     def get_menu_choice(self, user_input):
         """Gets input from user and processes the input"""
 
-        if int(user_input):
+        if int(user_input) and user_input > 0 and user_input < 8:
 
             if self.is_logged_in:
                 if user_input == '4':
@@ -119,6 +149,50 @@ class Controller:
             self.get_menu_choice(self.view.get_menu_choice())
             self.get_menu_choice(self.view.get_symbol_preference())
 
+    def check_password(self, pw):
+        pw = str(pw)
+        u = 0
+        l = 0
+        n = 0
+        s = 0
+
+        upper = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
+                 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+        lower = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+                 'm', 'n', '0', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+        numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+        specials = ['!', '?', '§', '$', '%', '&', '#', '@']
+        forbidden = ['"', "--", "'", ";"]
+
+        for e in pw:
+            if e in upper:
+                u += 1
+
+            if e in lower:
+                l += 1
+
+            if e in numbers:
+                n += 1
+
+            if e in specials:
+                s += 1
+
+            if e in forbidden:
+                self.view.invalid_input(
+                    "Password contains a forbidden Character")
+                return False
+
+        if u >= 2 and l >= 2 and n >= 2 and s >= 2:
+            if len(pw) >= 10 or len(pw) < 20:
+                self.view.print("This is a valid Password")
+                return True
+            else:
+                self.view.invalid_input("This is not a valid Password")
+                return False
+        else:
+            self.view.invalid_input("This is not a valid Password")
+            return False
+
     def registration(self):
         """Handles the registration of the user"""
 
@@ -180,7 +254,6 @@ class Controller:
 
         while True:
             code = Mail.create_code()
-
             if self.check_password(code):
                 break
 
@@ -190,7 +263,9 @@ class Controller:
             self.view.print(erg)
             return erg
 
-        password = Controller.hash_password(password)
+        password = Controller.hash_password(password)     
+
+        code = self.hash_password(code)
 
         self.db.add_player(mail, password, username, code)
 
@@ -205,6 +280,7 @@ class Controller:
         res = None
         mail = None
 
+        #Counter for Login Tries
         while True or res[0][10] != 0:
 
             temp = self.view.get_credentials(1)
@@ -212,7 +288,7 @@ class Controller:
             password = Controller.hash_password(temp[1])
 
             res = self.db.fetch_general_data(
-                    "*", "Spieler", "WHERE mail='" + mail + "';")
+                "*", "Spieler", "WHERE mail='" + mail + "';")
 
             if len(res) == 0:
                 # ToDo: CWE 200
@@ -221,19 +297,20 @@ class Controller:
 
             else:
                 if res == self.db.fetch_general_data(
-                "*", "Spieler", "WHERE mail='" + mail + "' and passwort='" + password + "';"):
-                    
+                        "*", "Spieler", "WHERE mail='" + mail + "' and passwort='" + password + "';"):
+
                     self.db.set_unlocked(mail)
                     break
 
                 elif self.db.get_locked(mail) == 0:
                     self.is_logged_in = False
-                    
+
                     return "Your account has been locked due to too many failed attempts.\n Please contact chessonline@team.dev for an unlock request\n"
 
                 else:
                     self.db.set_locked(mail)
-                    self.view.invalid_input("Wrong Credentials. Please Try again")  
+                    self.view.invalid_input(
+                        "Wrong Credentials. Please Try again")
 
         if res[0][9] is not None:
             code = self.view.get_activation_code()
@@ -359,13 +436,19 @@ class Controller:
     def get_symbol_preference(self, user_input):
         """Asks the user whether he wants to use symbols(True) or letters(False)"""
 
-        if self.check_input(user_input) == 1:
-            return True
+        if self.check_input_length():
 
-        elif self.check_input(user_input) == 0:
-            return False
+            if self.check_input(user_input) == 1:
+                return True
+
+            elif self.check_input(user_input) == 0:
+                return False
+
+            else:
+                self.get_symbol_preference(self.view.get_symbol_preference())
 
         else:
+            self.view.invalid_input("Excuse me, Something went Wrong. Please")
             self.get_symbol_preference(self.view.get_symbol_preference())
 
     def get_movement_choice(self, move, update=True):
@@ -373,60 +456,66 @@ class Controller:
 
         move = move.upper()
 
-        if re.match('^--', move):
-            if move[2:] == "STATS":
-                #eid = self.user['enemy']
-                pers = self.db.fetch_public_userdata(
-                    14)  # eid where nutzername = enemy
+        if self.check_input_length(move):
 
-                self.view.show_stats(pers)
-                self.get_movement_choice(self.view.get_movement_choice())
+            if re.match('^--', move):
+                if move[2:] == "STATS":
+                    #eid = self.user['enemy']
+                    pers = self.db.fetch_public_userdata(
+                        14)  # eid where nutzername = enemy
 
-            if move[2:] == "SAVE":
-                # ToDo: Darf während pvp nicht möglich sein
-                self.save()
-                self.view.clear_console()
-                self.view.print_menu(True, "\nSaved current Game\n\n")
-                return self.get_movement_choice(self.view.get_menu_choice())
+                    self.view.show_stats(pers)
+                    self.get_movement_choice(self.view.get_movement_choice())
 
-            elif move[2:] == "Surrender":
-                self.model.view.clear_console()
-                # ToDo: Surrender implementieren
-
-            elif move[2:] == "DRAW":
-                draw = self.ask_draw()
-                if not draw:
-                    self.view.print("Draw was rejected\n")
-                    return None
-                else:
-                    self.db.add_remis(self.db.get_id(self.user['username']))
-                    self.db.add_remis(self.db.get_id(self.user['enemy']))
-                    self.db.add_game(self.db.get_id(
-                        self.user['username']), self.db.get_id(self.user['enemy']), None)
-
-                    self.remove_game()
-
+                if move[2:] == "SAVE":
+                    # ToDo: Darf während pvp nicht möglich sein
+                    self.save()
                     self.view.clear_console()
-                    self.view.print_menu(True)
-                    self.get_menu_choice(self.view.get_menu_choice())
-                    sys.exit()
+                    self.view.print_menu(True, "\nSaved current Game\n\n")
+                    return self.get_movement_choice(self.view.get_menu_choice())
 
-            elif move[2:] == "HELP":
-                self.view.get_help()
+                elif move[2:] == "SURRENDER":
+                    self.model.view.clear_console()
+                    # ToDo: Surrender implementieren
 
+                elif move[2:] == "DRAW":
+                    draw = self.ask_draw()
+                    if not draw:
+                        self.view.print("Draw was rejected\n")
+                        return None
+                    else:
+                        self.db.add_remis(self.db.get_id(self.user['username']))
+                        self.db.add_remis(self.db.get_id(self.user['enemy']))
+                        self.db.add_game(self.db.get_id(
+                            self.user['username']), self.db.get_id(self.user['enemy']), None)
+
+                        self.remove_game()
+
+                        self.view.clear_console()
+                        self.view.print_menu(True)
+                        self.get_menu_choice(self.view.get_menu_choice())
+                        sys.exit()
+
+                elif move[2:] == "HELP":
+                    self.view.get_help()
+
+                else:
+                    self.view.invalid_input('Please try again!')
+                    return self.get_movement_choice(self.view.get_movement_choice())
+
+            elif re.match('^[A-H][0-8][A-H][0-8]', move):
+
+                start_pos = move[:2]
+                goal_pos = move[-2:]
+
+                return self.model.move_piece(
+                    self.model.correlation[start_pos], self.model.correlation[goal_pos], move=move, update=update)
             else:
                 self.view.invalid_input('Please try again!')
                 return self.get_movement_choice(self.view.get_movement_choice())
 
-        elif re.match('^[A-H][0-8][A-H][0-8]', move):
-
-            start_pos = move[:2]
-            goal_pos = move[-2:]
-
-            return self.model.move_piece(
-                self.model.correlation[start_pos], self.model.correlation[goal_pos], move=move, update=update)
         else:
-            self.view.invalid_input('Please try again!')
+            self.view.invalid_input("Excuse me, Something went Wrong. Please")
             return self.get_movement_choice(self.view.get_movement_choice())
 
     def release_lock(self):
@@ -862,8 +951,8 @@ class Controller:
             self.db.remove_save(self.user['username'])
 
         game_save = {"currently_playing": str(self.model.currently_playing),
-                    "show_symbols": self.model.show_symbols,
-                    "board_state": {}}
+                     "show_symbols": self.model.show_symbols,
+                     "board_state": {}}
 
         json_dict = {}
         for i in range(64):
@@ -959,66 +1048,3 @@ class Controller:
             self.user['username'] = None
             self.is_logged_in = False
             return "Logout successful"
-
-    def check_input(self, user_input):
-        user_input = user_input.upper()
-        if re.match('^Y', user_input) or re.match('YES', user_input):
-            return 1
-
-        elif re.match('^N', user_input) or re.match('NO', user_input):
-            return 0
-
-        else:
-            self.view.invalid_input(
-                'Please answer the question with "yes" or "no"')
-            return 2
-
-    @staticmethod
-    def hash_password(pw):
-        encoded = pw.encode()
-        password_hash = hl.sha3_512(encoded)
-        return password_hash.hexdigest()
-
-    def check_password(self, pw):
-        pw = str(pw)
-        u = 0
-        l = 0
-        n = 0
-        s = 0
-
-        upper = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
-                 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-        lower = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
-                 'm', 'n', '0', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
-        numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-        specials = ['!', '?', '§', '$', '%', '&', '#', '@']
-        forbidden = ['"', "--", "'", ";"]
-
-        for e in pw:
-            if e in upper:
-                u += 1
-
-            if e in lower:
-                l += 1
-
-            if e in numbers:
-                n += 1
-
-            if e in specials:
-                s += 1
-
-            if e in forbidden:
-                self.view.invalid_input(
-                    "Password contains a forbidden Character")
-                return False
-
-        if u >= 2 and l >= 2 and n >= 2 and s >= 2:
-            if len(pw) >= 10:
-                self.view.print("This is a valid Password")
-                return True
-            else:
-                self.view.invalid_input("This is not a valid Password")
-                return False
-        else:
-            self.view.invalid_input("This is not a valid Password")
-            return False

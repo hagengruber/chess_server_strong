@@ -17,7 +17,7 @@ class Mail:
         self.PASSWORD = "halonthxitol36598#!/89gotls"
 
     @staticmethod
-    def create_code():
+    def create_code(self):
         """Creates Code for login"""
         # ToDo: Für starke Version: Code ist Bruteforcebar!
         return random.randint(1000, 99999)
