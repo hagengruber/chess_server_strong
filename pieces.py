@@ -237,16 +237,17 @@ class Piece(metaclass=ABCMeta):
                 break
         return allowed
 
+
 class Rook(Piece):
     """Class for Rooks"""
 
-    def __init__(self, colour, position, model):
+    def __init__(self, colour, position, model, moved):
         Piece.__init__(self)
         self.model = model
         self.colour = colour
         self.symbol = self.set_symbol()
         self.position = position
-        self.moved = False
+        self.moved = moved
         Rook.table = [
             [0, 0, 0, 5, 5, 0, 0, 0],
             [-5, 0, 0, 0, 0, 0, 0, -5],
@@ -286,15 +287,17 @@ class Rook(Piece):
         else:
             return False
 
+
 class Horse(Piece):
     """Class for Horses"""
 
-    def __init__(self, colour, position, model):
+    def __init__(self, colour, position, model, moved):
         Piece.__init__(self)
         self.model = model
         self.colour = colour
         self.symbol = self.set_symbol()
         self.position = position
+        self.moved = moved
         Horse.table = [
             [-50, -40, -30, -30, -30, -30, -40, -50],
             [-40, -20, 0, 5, 5, 0, -20, -40],
@@ -353,15 +356,17 @@ class Horse(Piece):
         else:
             return False
 
+
 class Bishop(Piece):
     """Class for Bishops"""
 
-    def __init__(self, colour, position, model):
+    def __init__(self, colour, position, model, moved):
         Piece.__init__(self)
         self.model = model
         self.colour = colour
         self.symbol = self.set_symbol()
         self.position = position
+        self.moved = moved
         Bishop.table = [
             [-20, -10, -10, -10, -10, -10, -10, -20],
             [-10, 5, 0, 0, 0, 0, 5, -10],
@@ -401,16 +406,17 @@ class Bishop(Piece):
         else:
             return False
 
+
 class Pawn(Piece):
     """Class for Pawns"""
 
-    def __init__(self, colour, position, model):
+    def __init__(self, colour, position, model, moved):
         Piece.__init__(self)
         self.model = model
         self.colour = colour
         self.symbol = self.set_symbol()
         self.position = position
-        self.moved = False
+        self.moved = moved
         Pawn.table = [
             [0, 0, 0, 0, 0, 0, 0, 0],
             [5, 10, 10, -20, -20, 10, 10, 5],
@@ -437,7 +443,7 @@ class Pawn(Piece):
 
     def check_legal_move(self, position, state="", return_all=False):
         """Makes a list of all legal moves and returns True if the given position is part of them"""
-    
+
         allowed = []
         if state == "":
             state = self.model.board_state
@@ -489,15 +495,17 @@ class Pawn(Piece):
             else:
                 return False
 
+
 class Queen(Piece):
     """Class for Queens"""
 
-    def __init__(self, colour, position, model):
+    def __init__(self, colour, position, model, moved):
         Piece.__init__(self)
         self.model = model
         self.colour = colour
         self.symbol = self.set_symbol()
         self.position = position
+        self.moved = moved
         Queen.table = [
             [-20, -10, -10, -5, -5, -10, -10, -20],
             [-10, 0, 5, 0, 0, 0, 0, -10],
@@ -536,16 +544,17 @@ class Queen(Piece):
         else:
             return False
 
+
 class King(Piece):
     """Class for Kings"""
 
-    def __init__(self, colour, position, model):
+    def __init__(self, colour, position, model, moved):
         Piece.__init__(self)
         self.model = model
         self.colour = colour
         self.symbol = self.set_symbol()
         self.position = position
-        self.moved = False
+        self.moved = moved
 
     def set_symbol(self):
         """Returns the Symbol the given piece should display"""
@@ -582,17 +591,15 @@ class King(Piece):
         if not self.check_occupied_friendly(self.position + 8, state):
             allowed.append(self.position + 8)
         if not self.check_occupied_friendly(self.position + 9, state):
-            allowed.append(self.position + 9)   
+            allowed.append(self.position + 9)
 
         if self.model.check_rochade():
             allowed.append(self.position - 3)
-            allowed.append(self.position + 2)   
-            
+            allowed.append(self.position + 2)
+
         if return_all:
             return allowed
         if position in allowed:
             return True
         else:
             return False
-        
-        

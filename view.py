@@ -1,10 +1,10 @@
 """
     Module for displaying the current state of the game to the user
 """
+
 import pyfiglet
 
-
-# Formatierung von Ausgaben Leerzeichen oder Neue Zeile vorne oder hinten einheitlich?
+# Formatierung von Ausgaben Leerzeichen oder neue Zeile vorne oder hinten einheitlich?
 
 
 class View:
@@ -19,6 +19,10 @@ class View:
     def init_socket(self, socket):
         self.socket = socket
 
+    def clear_console(self):
+        """Clear the console of unnecessary stuff"""
+        self.socket.sendall("\033[H\033[J".encode())
+
     def input(self, text=None):
         if text is not None:
             self.print(text)
@@ -27,6 +31,10 @@ class View:
 
     def print(self, text):
         self.socket.sendall(text.encode())
+
+    def invalid_input(self, user_input):
+        self.print('\nInvalid input! \n')
+        self.print(user_input + '\n')
 
     def update_board(self, state=""):
         self.count += 1
@@ -43,14 +51,16 @@ class View:
         temp = None
 
         while temp is None:
-            temp = self.model.controller.get_queue_content(self.model.controller.games)
+            temp = self.model.controller.get_queue_content(
+                self.model.controller.games)
 
         games = temp['games']
 
         for i in range(len(games)):
             if games[i]['player1'] == self.model.controller.user['username'] \
                     or games[i]['player2'] == self.model.controller.user['username']:
-                self.print(games[i]['currently_playing'] + ' is currently playing!\n')
+                self.print(games[i]['currently_playing'] +
+                           ' is currently playing!\n')
 
         self.print('   1   2   3   4   5   6   7   8\n')
         self.print(box_top + '\n')
@@ -78,10 +88,6 @@ class View:
 
         self.last_board = self.model.get_copy_board_state()
 
-    def clear_console(self):
-        """Clear the console of unnecessary stuff"""
-        self.socket.sendall("\033[H\033[J".encode())
-
     def print_menu(self, login, sub_message=None):
         """Display the starting menu and tell 'model' to ask the user what he wants to do"""
 
@@ -105,21 +111,29 @@ class View:
 
         self.model.controller.get_menu_choice(self.get_menu_choice())
 
-    def invalid_input(self, input):
-        self.print('Invalid input! \n')
-        self.print(input)
-
     def get_after_game_choice(self):
-        self.print('Do you want to play another round? (Y/N): ')
+        self.print('\nDo you want to play another round? (Y/N): ')
         return input()
 
     def get_menu_choice(self):
-        self.print('Please enter the number that corresponds to your desired menu: ')
-        return self.input()
+        while True:
+            self.print(
+                '\nPlease enter the number that corresponds to your desired menu: ')
+            try:
+                user_input = int(self.input())
+            except ValueError:
+                self.invalid_input("\nPlease enter a valid Integer\n")
+                continue
+            if user_input < 0 or user_input > 6:
+                self.invalid_input(
+                    "\nPlease enter an Integer that corresponds to the shown Menu\n")
+                continue
+            else:
+                return user_input
 
     def get_symbol_preference(self):
         self.print(
-            'Do you want to use symbols? If not, letters will be used instead. (Y/N): ')
+            '\nDo you want to use symbols? If not, letters will be used instead. (Y/N): ')
         return self.input()
 
     def get_movement_choice(self):
@@ -139,3 +153,20 @@ class View:
     def accept_remis(self):
         self.print('Do you want to accept Remis? ')
         return self.input()
+
+    def get_activation_code(self):
+        self.print("\nEnter your activation Code: ")
+        return self.input()
+
+    def get_credentials(self, i):
+        temp = []
+        self.print('\nE-mail address:')
+        temp.append(self.input())
+        self.print('\nPassword (2x "A-Z", 2x "a-z", 2x "0-9", '
+                   '2x ("!" "?" "$" "&" "%" "#" "@")) min. 10, max. 20 character: ')
+        temp.append(self.input())
+
+        if i == 0:
+            self.print('Repeat password:')
+            temp.append(self.input())
+        return temp

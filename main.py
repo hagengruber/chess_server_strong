@@ -3,13 +3,13 @@
     @Author: Hagengruber Florian:   22101608
     @Author: Joiko Christian:       22111097
 """
-import socket
-import multiprocessing as m
+
 from multiprocessing import Queue
 from multiprocessing import Lock
+import multiprocessing as m
 from model import Model
 from queue import Empty
-import ssl
+import socket
 
 
 class App:
@@ -57,11 +57,13 @@ class App:
     def run(self):
         """Handles connection requests"""
 
-        m.Process(target=App.check_launch_lobby, args=(self.lock, self.lobby,)).start()
+        m.Process(target=App.check_launch_lobby,
+                  args=(self.lock, self.lobby,)).start()
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((self.host, self.port))
-            print("Server is listening on " + str(self.ip) + " with Port " + str(self.port))
+            print("Server is listening on " + str(self.ip) +
+                  " with Port " + str(self.port))
             s.listen()
 
             while True:
@@ -69,13 +71,11 @@ class App:
                 while self.connect.qsize() != 0:
                     self.connect.get()
                     self.threads += 1
-                    m.Process(target=App.listen, args=(s, self.connect, self.lobby, self.threads, self.lock,
-                                                       self.server_cert, self.server_key, self.client_certs)).start()
+                    m.Process(target=App.listen, args=(s, self.connect, self.lobby, self.threads, self.lock)).start()
 
     @staticmethod
     def check_launch_lobby(lock, game):
-
-        """Checks if two users are in the Lobby and creates a game room"""
+        """Checks if two users an in the Lobby and creates a game room"""
 
         # built-in function because the function has to be static due to the pickle error
         def release_lock(lock_f):
@@ -164,12 +164,13 @@ class App:
                 temp['lobby'] = lobby
                 temp['games'] = games
 
-                write_queue_content(game, temp, lock, override=True, safe_mode=False)
+                write_queue_content(
+                    game, temp, lock, override=True, safe_mode=False)
 
             release_lock(lock)
 
     @staticmethod
-    def listen(s, connect, lobby, threads, lock, server_cert, server_key, client_certs):
+    def listen(s, connect, lobby, threads, lock):
         """Waits for a connection from a Client and starts the game loop"""
 
         m.Process(target=App.connect_and_run, args=(s, connect, lobby, threads, lock)).start()

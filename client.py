@@ -9,8 +9,8 @@ import ssl
 class Client:
 
     def __init__(self):
-        self.host = "192.168.1.112"
-        self.port = 12344
+        self.host = socket.gethostbyname(socket.gethostname())
+        self.port = 8080
         self.go = False
         self.server_sni_hostname = 'Chess'
         self.server_cert = './certs/server.crt'
@@ -72,7 +72,7 @@ class Client:
 
                             self.go = True
 
-                        elif message == 'password: ' or message == 'Enter a new password: ':
+                        elif 'password' in message.lower():
                             password = getpass('')
                             self.conn.sendall(password.encode())
 
