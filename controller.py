@@ -34,6 +34,14 @@ class Controller:
         self.db = database.Database()
         self.is_logged_in = False
 
+        self.upper = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
+                 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+        self.lower = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+                 'm', 'n', '0', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+        self.numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+        self.specials = ['!', '?', '§', '$', '%', '&', '#', '@']
+        self.forbidden = ['"', "--", "'", ";"]
+
     def run(self):
 
         context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
@@ -140,7 +148,7 @@ class Controller:
                 message = self.login()
                 self.view.clear_console()
                 self.view.print_menu(
-                    self.is_logged_in, sub_message="\n" + message + "\n\n")
+                    self.is_logged_in, sub_message="\n" + message + "\n")
                 self.get_menu_choice(self.view.get_menu_choice())
 
             elif user_input == 5:
@@ -184,34 +192,26 @@ class Controller:
         n = 0
         s = 0
 
-        upper = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
-                 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-        lower = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
-                 'm', 'n', '0', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
-        numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-        specials = ['!', '?', '§', '$', '%', '&', '#', '@']
-        forbidden = ['"', "--", "'", ";"]
-
         for e in pw:
-            if e in upper:
+            if e in self.upper:
                 u += 1
 
-            if e in lower:
+            if e in self.lower:
                 l += 1
 
-            if e in numbers:
+            if e in self.numbers:
                 n += 1
 
-            if e in specials:
+            if e in self.specials:
                 s += 1
 
-            if e in forbidden:
+            if e in self.forbidden:
                 self.view.invalid_input(
                     "Password contains a forbidden Character")
                 return False
 
         if u >= 2 and l >= 2 and n >= 2 and s >= 2:
-            if len(pw) >= 10 and len(pw) <= 20:
+            if 10 <= len(pw) <= 20:
                 return True
             else:
                 self.view.invalid_input("This is not a valid Password")
@@ -300,53 +300,53 @@ class Controller:
         if self.is_logged_in:
             return "You are already logged in as " + str(self.user['username'])
 
-        res = None
-        mail = None
+        # Get Credentials from User
+        temp = self.view.get_credentials(1)
+        mail = temp[0]
+        password = Controller.hash_password(temp[1])
 
-        # Counter for Login Tries
-        while True or res[0][10] != 0:
+        res = self.db.fetch_general_data(
+            "*", "Spieler", "WHERE mail='" + mail + "';")
 
-            temp = self.view.get_credentials(1)
-            mail = temp[0]
-            password = Controller.hash_password(temp[1])
+        # If the Email Address doesn't exist
+        if len(res) == 0:
+            self.is_logged_in = False
+            return "Wrong Credentials. Please Try again"
 
-            res = self.db.fetch_general_data(
-                "*", "Spieler", "WHERE mail='" + mail + "';")
+        else:
 
-            if len(res) == 0:
-                # ToDo: CWE 200
-                self.is_logged_in = False
-                return "False Credential"
+            # If the user is locked
+            if self.db.get_locked(mail) == 0:
+                return "Your account has been locked due to too many failed attempts.\n" \
+                       "Please contact chess_dev-team@hagengruber.dev for an unlock request"
 
-            else:
-                if res == self.db.fetch_general_data(
-                        "*", "Spieler", "WHERE mail='" + mail + "' and passwort='" + password + "';"):
+            # Check if the Password is not correct
+            if not res == self.db.fetch_general_data(
+                    "*", "Spieler", "WHERE mail='" + mail + "' and passwort='" + password + "';"):
 
-                    self.db.set_unlocked(mail)
-                    break
+                self.db.set_locked(mail)
+                return "Wrong Credentials. Please Try again"
 
-                elif self.db.get_locked(mail) == 0:
-                    self.is_logged_in = False
-
-                    return "Your account has been locked due to too many failed attempts.\n " \
-                           "Please contact chessonline@team.dev for an unlock request\n"
-
-                else:
-                    self.db.set_locked(mail)
-                    self.view.invalid_input(
-                        "Wrong Credentials. Please Try again")
-
+        # If the user must enter an activation Code
         if res[0][9] is not None:
+
+            # Get Code from User
             code = self.view.get_activation_code()
+            c = self.hash_password(code)
+
+            # If Code in Database (hash) is equal to the Hash from the Code the User inserted
             if res[0][9] == self.hash_password(code):
+                # Set 'aktivierungscode' to null
                 self.db.update_general_data(
                     'Spieler', '"aktivierungscode"', 'NULL', 'WHERE mail="' + mail + '";')
             else:
+                self.db.set_locked(mail)
                 return "Wrong activation Code"
 
         self.user['username'] = res[0][3]
         self.is_logged_in = True
 
+        self.db.set_unlocked(mail)
         return "Login successful"
 
     def join_lobby(self):
@@ -968,7 +968,7 @@ class Controller:
     def save(self):
         """Saves the current state to a JSON-File"""
 
-        game_save = self.db.get_GameSave(self.user['username'])
+        game_save = self.db.get_game_save(self.user['username'])
 
         if game_save is not False:
             self.db.remove_save(self.user['username'])
@@ -997,12 +997,12 @@ class Controller:
         game_save = str(game_save).replace("'", '"')
 
         save_id = self.db.add_save(game_save)
-        self.db.change_saveid(self.db.get_id(self.user['username']), save_id)
+        self.db.change_save_id(self.db.get_id(self.user['username']), save_id)
 
     def load(self):
         """Loads a savestate"""
 
-        game_save = self.db.get_GameSave(self.user['username'])
+        game_save = self.db.get_game_save(self.user['username'])
 
         if not game_save:
             self.view.clear_console()

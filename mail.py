@@ -19,7 +19,7 @@ class Mail:
     @staticmethod
     def create_code():
         """Creates Code for login"""
-        return random.randint(1000, 9999)
+        return random.randint(1000000000, 9999999999)
 
     def send_mail(self, destination, code):
         """Sends mail"""
