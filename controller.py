@@ -305,6 +305,10 @@ class Controller:
         mail = temp[0]
         password = Controller.hash_password(temp[1])
 
+        for c in self.forbidden:
+            if c in mail:
+                return "Wrong Credentials. Please Try again"
+
         res = self.db.fetch_general_data(
             "*", "Spieler", "WHERE mail='" + mail + "';")
 
