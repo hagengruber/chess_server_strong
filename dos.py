@@ -161,17 +161,21 @@ class DDOS:
         host = socket.gethostbyname(socket.gethostname())
         port = 8080
         clients = []
-        sprungweite = 50
-        stats = 0
+        sprungweite = 20
+        start = 50
+        stats = sprungweite
 
         while True:
             clients.append(m.Process(target=DDOS.client, args=(self, host, port, len(clients) + 1,)))
             clients[-1].start()
-            stats += 1
 
-            if stats == sprungweite:
-                self.create_statistic(len(clients), host, port)
-                stats = 0
+            if len(clients) >= start:
+
+                stats += 1
+                if stats >= sprungweite:
+                    print("Jump to statistics")
+                    self.create_statistic(len(clients), host, port)
+                    stats = 0
 
 
 if __name__ == "__main__":
