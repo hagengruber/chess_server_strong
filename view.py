@@ -3,8 +3,9 @@
 """
 
 import pyfiglet
-
-# Formatierung von Ausgaben Leerzeichen oder neue Zeile vorne oder hinten einheitlich?
+from colorama import init as colorama_init
+from colorama import Fore
+from colorama import Style
 
 
 class View:
@@ -33,8 +34,8 @@ class View:
         self.socket.sendall(text.encode())
 
     def invalid_input(self, user_input):
-        self.print('\nInvalid input! \n')
-        self.print(user_input + '\n')
+        self.print('Invalid input!')
+        self.print(user_input)
 
     def update_board(self, state=""):
         self.count += 1
@@ -107,6 +108,11 @@ class View:
         self.socket.sendall(message.encode())
 
         if sub_message is not None:
+
+            # Error message in red
+            colorama_init()
+            sub_message = f"{Fore.RED}" + sub_message + f"{Style.RESET_ALL}"
+
             self.socket.sendall(sub_message.encode())
 
         self.model.controller.get_menu_choice(self.get_menu_choice())
@@ -116,18 +122,24 @@ class View:
         return input()
 
     def get_menu_choice(self):
+
         while True:
-            self.print(
-                '\nPlease enter the number that corresponds to your desired menu: ')
+
+            self.print('\nPlease enter the number that corresponds to your desired menu: ')
+
             try:
                 user_input = int(self.input())
+
             except ValueError:
-                self.invalid_input("\nPlease enter a valid Integer\n")
+                self.clear_console()
+                self.print_menu(self.model.controller.is_logged_in, sub_message="\nPlease enter an Integer\n")
                 continue
+
             if user_input < 0 or user_input > 6:
-                self.invalid_input(
-                    "\nPlease enter an Integer that corresponds to the shown Menu\n")
+                self.clear_console()
+                self.print_menu(self.model.controller.is_logged_in, sub_message="\nPlease enter a valid Number\n")
                 continue
+
             else:
                 return user_input
 

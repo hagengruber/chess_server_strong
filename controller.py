@@ -35,9 +35,9 @@ class Controller:
         self.is_logged_in = False
 
         self.upper = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
-                 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+                      'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
         self.lower = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
-                 'm', 'n', '0', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+                      'm', 'n', '0', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
         self.numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         self.specials = ['!', '?', '§', '$', '%', '&', '#', '@']
         self.forbidden = ['"', "--", "'", ";"]
@@ -101,6 +101,8 @@ class Controller:
 
         if int(user_input) and 0 < user_input < 8:
 
+            # If User is logged in, a different Menu will be displayed
+            # User Input must be changed
             if self.is_logged_in:
                 if user_input == '4':
                     user_input = '6'
@@ -127,16 +129,16 @@ class Controller:
                     self.join_lobby()
                     self.coop()
 
+                    # After the Game
                     self.view.clear_console()
                     self.view.print_menu(self.is_logged_in)
                     self.get_menu_choice(self.view.get_menu_choice())
 
             elif user_input == 2:
+                # User vs AI
                 self.model.ai = True
-                self.user_ai = AI(self.model, self.view,
-                                  "Black", "White", self)
-                self.model.show_symbols = self.get_symbol_preference(
-                    self.view.get_symbol_preference())
+                self.user_ai = AI(self.model, self.view, "Black", "White", self)
+                self.model.show_symbols = self.get_symbol_preference(self.view.get_symbol_preference())
 
                 self.start_game()
 
@@ -144,27 +146,26 @@ class Controller:
                 # load game
                 cont = self.load()
                 if cont:
-                    # self.view.update_board()
                     self.start_game()
 
             elif user_input == 4:
                 # login
                 message = self.login()
                 self.view.clear_console()
-                self.view.print_menu(
-                    self.is_logged_in, sub_message="\n" + message + "\n")
+                self.view.print_menu(self.is_logged_in, sub_message="\n" + message + "\n")
                 self.get_menu_choice(self.view.get_menu_choice())
 
             elif user_input == 5:
                 # registration
                 erg = self.registration()
                 self.view.clear_console()
+
                 if erg is None:
                     self.view.print_menu(
                         self.is_logged_in, sub_message="\nCode was sent to your email address\n\n")
                 else:
-                    self.view.print_menu(
-                        self.is_logged_in, sub_message="\n" + erg + "\n\n")
+                    # If something went wrong
+                    self.view.print_menu(self.is_logged_in, sub_message="\n" + erg + "\n\n")
 
                 self.get_menu_choice(self.view.get_menu_choice())
 
@@ -172,8 +173,7 @@ class Controller:
                 # logout
                 message = self.logout()
                 self.view.clear_console()
-                self.view.print_menu(
-                    self.is_logged_in, sub_message="\n" + message + "\n\n")
+                self.view.print_menu(self.is_logged_in, sub_message="\n" + message + "\n\n")
                 self.get_menu_choice(self.view.get_menu_choice())
 
             elif user_input == 7:
@@ -182,12 +182,12 @@ class Controller:
                 sys.exit()
 
             else:
-                self.view.invalid_input("Please insert a number")
+                self.view.clear_console()
+                self.view.print_menu(self.is_logged_in, sub_message="\nPlease enter a valid Number\n")
 
         else:
-            self.view.invalid_input("Please insert a valid Number")
-            self.get_menu_choice(self.view.get_menu_choice())
-            self.get_menu_choice(self.view.get_symbol_preference())
+            self.view.clear_console()
+            self.view.print_menu(self.is_logged_in, sub_message="\nPlease enter a valid Number\n")
 
     def check_password(self, pw):
         pw = str(pw)
@@ -331,7 +331,6 @@ class Controller:
             # Check if the Password is not correct
             if not res == self.db.fetch_general_data(
                     "*", "Spieler", "WHERE mail='" + mail + "' and passwort='" + password + "';"):
-
                 self.db.set_locked(mail)
                 return "Wrong Credentials. Please Try again"
 
@@ -340,7 +339,6 @@ class Controller:
 
             # Get Code from User
             code = self.view.get_activation_code()
-            c = self.hash_password(code)
 
             # If Code in Database (hash) is equal to the Hash from the Code the User inserted
             if res[0][9] == self.hash_password(code):
@@ -932,7 +930,6 @@ class Controller:
                     self.view.print_menu(True)
                     self.get_menu_choice(self.view.get_menu_choice())
                     sys.exit()
-
 
     def check_for_draw(self):
 
