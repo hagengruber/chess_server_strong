@@ -1,12 +1,12 @@
 """
     Module that contains the alpha-beta-pruning algorithm for the AI
 """
-import math
-from tqdm import tqdm
-import pieces
-import threading as m
 from multiprocessing import cpu_count
 from queue import Queue
+from tqdm import tqdm
+import threading as m
+import pieces
+import math
 
 
 class AI:

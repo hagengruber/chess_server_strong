@@ -1,21 +1,22 @@
 """
     Module for managing and manipulating data
 """
-from view import View
+
+from pieces import Rook, Horse, Bishop, Pawn, King, Queen
 from controller import Controller
 from database import Database
-from pieces import Rook, Horse, Bishop, Pawn, King, Queen
+from view import View
 
 
-# noinspection PyTypeChecker
 class Model:
     """Class that handles everything for the module"""
 
-    def __init__(self, socket, lobby, num_of_thread, lock):
+    def __init__(self, socket, connect, lobby, num_of_thread, lock):
 
         self.board_state = list(None for _ in range(64))
-        self.view = View(socket)
-        self.controller = Controller(self.view, socket, lobby, num_of_thread, lock)
+        self.view = View()
+        self.controller = Controller(
+            self.view, socket, connect, lobby, num_of_thread, lock)
         self.database = Database()
         self.show_symbols = True
         self.correlation = {'A1': 0, 'A2': 1, 'A3': 2, 'A4': 3, 'A5': 4, 'A6': 5, 'A7': 6, 'A8': 7,
@@ -30,31 +31,40 @@ class Model:
         self.currently_playing = 'White'
         self.ai = None
 
+    def remove_king(self, color):
+
+        for i in range(len(self.board_state)):
+            if self.board_state[i] is not None:
+                if type(self.board_state[i]) == King and self.board_state[i].colour == color:
+                    self.board_state[i] = None
+                    break
+
+
     def reset_pieces(self):
         """Reset the board to its starting state"""
         model = self
-        self.board_state[0] = Rook('Black', 0, model)
-        self.board_state[1] = Horse('Black', 1, model)
-        self.board_state[2] = Bishop('Black', 2, model)
-        self.board_state[3] = Queen('Black', 3, model)
-        self.board_state[4] = King('Black', 4, model)
-        self.board_state[5] = Bishop('Black', 5, model)
-        self.board_state[6] = Horse('Black', 6, model)
-        self.board_state[7] = Rook('Black', 7, model)
+        self.board_state[0] = Rook('Black', 0, model, False)
+        self.board_state[1] = Horse('Black', 1, model, False)
+        self.board_state[2] = Bishop('Black', 2, model, False)
+        self.board_state[3] = Queen('Black', 3, model, False)
+        self.board_state[4] = King('Black', 4, model, False)
+        self.board_state[5] = Bishop('Black', 5, model, False)
+        self.board_state[6] = Horse('Black', 6, model, False)
+        self.board_state[7] = Rook('Black', 7, model, False)
         for i in range(8):
-            self.board_state[8 + i] = Pawn('Black', 8 + i, model)
+            self.board_state[8 + i] = Pawn('Black', 8 + i, model, False)
         for i in range(16, 56):
             self.board_state[i] = None
-        self.board_state[56] = Rook('White', 56, model)
-        self.board_state[57] = Horse('White', 57, model)
-        self.board_state[58] = Bishop('White', 58, model)
-        self.board_state[59] = Queen('White', 59, model)
-        self.board_state[60] = King('White', 60, model)
-        self.board_state[61] = Bishop('White', 61, model)
-        self.board_state[62] = Horse('White', 62, model)
-        self.board_state[63] = Rook('White', 63, model)
+        self.board_state[56] = Rook('White', 56, model, False)
+        self.board_state[57] = Horse('White', 57, model, False)
+        self.board_state[58] = Bishop('White', 58, model, False)
+        self.board_state[59] = Queen('White', 59, model, False)
+        self.board_state[60] = King('White', 60, model, False)
+        self.board_state[61] = Bishop('White', 61, model, False)
+        self.board_state[62] = Horse('White', 62, model, False)
+        self.board_state[63] = Rook('White', 63, model, False)
         for i in range(8):
-            self.board_state[48 + i] = Pawn('White', 48 + i, model)
+            self.board_state[48 + i] = Pawn('White', 48 + i, model, False)
         self.pieces.clear()
         for _ in range(64):
             if self.board_state[_] is not None:
@@ -76,12 +86,13 @@ class Model:
             if self.board_state[start_pos].check_legal_move(goal_pos):
                 self.board_state[goal_pos] = moved_piece
                 self.board_state[start_pos] = None
-                print("Position changed: " + str(moved_piece.position) + " -> " + str(goal_pos))
+                print("Position changed: " +
+                      str(moved_piece.position) + " -> " + str(goal_pos))
                 moved_piece.position = goal_pos
                 if type(moved_piece) == Pawn:
                     if moved_piece.upgrade():
                         self.board_state[goal_pos] = Queen(
-                            self.currently_playing, goal_pos, model)
+                            self.currently_playing, goal_pos, model, False)
 
                 if type(moved_piece) == King and self.check_rochade:
                     if goal_pos == 62:
@@ -108,8 +119,10 @@ class Model:
                     self.view.update_board()
                 return move
             else:
-                print("Erg: " + str(self.board_state[start_pos].check_legal_move(goal_pos)))
-                self.view.invalid_input('Sorry, this move is not legal. Please try again!')
+                print(
+                    "Erg: " + str(self.board_state[start_pos].check_legal_move(goal_pos)))
+                self.view.invalid_input(
+                    'Sorry, this move is not legal. Please try again!')
                 return self.controller.get_movement_choice(self.view.get_movement_choice())
 
         else:
@@ -120,7 +133,8 @@ class Model:
             print("Current color: " + str(self.currently_playing))
             print("pieces: " + str(moved_piece))
 
-            self.view.invalid_input('There is no piece of your color on this space. Please try again!')
+            self.view.invalid_input(
+                'There is no piece of your color on this space. Please try again!')
             return self.controller.get_movement_choice(self.view.get_movement_choice())
 
     def check_for_king(self, color=None):
@@ -166,9 +180,12 @@ class Model:
             return False
 
     def recalculate_elo(self, victor_id, loser_id):
-        victor_elo = int(self.database.fetch_general_data('elo', 'Spieler', 'WHERE id = ' + str(victor_id))[0][0])
-        loser_elo = int(self.database.fetch_general_data('elo', 'Spieler', 'WHERE id = ' + str(loser_id))[0][0])
-        elo_difference = max(victor_elo, loser_elo) - min(victor_elo, loser_elo)
+        victor_elo = int(self.database.fetch_general_data(
+            'elo', 'Spieler', 'WHERE id = ' + str(victor_id))[0][0])
+        loser_elo = int(self.database.fetch_general_data(
+            'elo', 'Spieler', 'WHERE id = ' + str(loser_id))[0][0])
+        elo_difference = max(victor_elo, loser_elo) - \
+            min(victor_elo, loser_elo)
         elo_difference = elo_difference / 400
         expected_value = 1 / (1 + 10**elo_difference)
         changed_elo = victor_elo + 20 * (1 - expected_value)

@@ -36,10 +36,11 @@ class Database:
         self.con.commit()
         self.close_connection()
 
-    def add_save(self, dataname):
+    def add_save(self, data_name):
         """Adds a savestate to the 'Speicherstände' table"""
         self.open_connection()
-        self.cur.execute("""INSERT INTO Speicherstände (name) VALUES ('%s')""" % dataname)
+        self.cur.execute(
+            """INSERT INTO Speicherstände (name) VALUES ('%s')""" % data_name)
         self.con.commit()
         pk = self.cur.lastrowid
         self.close_connection()
@@ -48,13 +49,15 @@ class Database:
     def remove_save(self, username):
         self.open_connection()
 
-        res = self.cur.execute("""SELECT saveid FROM Spieler WHERE id = '%s'""" % self.get_id(username))
+        res = self.cur.execute(
+            """SELECT saveid FROM Spieler WHERE id = '%s'""" % self.get_id(username))
 
         save_id = res.fetchall()[0][0]
 
-        self.change_saveid(self.get_id(username), 0, end_connection=False)
+        self.change_save_id(self.get_id(username), 0, end_connection=False)
 
-        self.cur.execute("""DELETE FROM Speicherstände WHERE id='%s'""" % save_id)
+        self.cur.execute(
+            """DELETE FROM Speicherstände WHERE id='%s'""" % save_id)
         self.con.commit()
         self.close_connection()
 
@@ -82,10 +85,11 @@ class Database:
         self.con.commit()
         self.close_connection()
 
-    def change_saveid(self, player_id, save_id, end_connection=True):
-        """Changes the saveid of a given player to the id of a given savestate"""
+    def change_save_id(self, player_id, save_id, end_connection=True):
+        """Changes the save_id of a given player to the id of a given savestate"""
         self.open_connection()
-        self.cur.execute("""UPDATE Spieler SET saveid = '%s' WHERE id = '%s'""" % (save_id, player_id))
+        self.cur.execute(
+            """UPDATE Spieler SET saveid = '%s' WHERE id = '%s'""" % (save_id, player_id))
         self.con.commit()
         if end_connection:
             self.close_connection()
@@ -129,47 +133,10 @@ class Database:
         self.close_connection()
         return data
 
-    def fetch_public_gamedata(self, game_id):
-        """Returns public information for a game"""
-        self.open_connection()
-        res = self.cur.execute(
-            """SELECT spieler1id, spieler2id, siegerid FROM Spiele WHERE id = '%s'""" % game_id)
-        data = res.fetchall()
-        self.close_connection()
-        return data
-
-    def fetch_full_gamedata(self, game_id):
-        """Returns full information for a game"""
-        self.open_connection()
-        res = self.cur.execute(
-            """SELECT * FROM Spiele WHERE id = '%s'""" % game_id)
-        data = res.fetchall()
-        self.close_connection()
-        return data
-
-    def fetch_full_savedata(self, save_id):
-        """Returns full information for a savestate"""
-        self.open_connection()
-        res = self.cur.execute(
-            """SELECT * FROM Speicherstände WHERE id = '%s'""" % save_id)
-        data = res.fetchall()
-        self.close_connection()
-        return data
-
-    def fetch_general_data(self, filter, database, sql_exec=""):
+    def fetch_general_data(self, table_filter, database, sql_exec=""):
         """Executes SQL statements for general purpose"""
         self.open_connection()
-        res = self.cur.execute("SELECT " + filter +
-                               " FROM " + database + " " + sql_exec)
-        data = res.fetchall()
-        self.close_connection()
-        return data
-
-    def fetch_general_data(self, filter, table, sql_exec=""):
-        """Executes SQL statements for general select purpose"""
-        self.open_connection()
-        res = self.cur.execute("SELECT " + filter +
-                               " FROM " + table + " " + sql_exec)
+        res = self.cur.execute("SELECT " + table_filter + " FROM " + database + " " + sql_exec)
         data = res.fetchall()
         self.close_connection()
         return data
@@ -189,17 +156,20 @@ class Database:
     def update_general_data(self, table, column, content, sql_exec=""):
         """Executes SQL statements for general update purpose"""
         self.open_connection()
-        self.cur.execute("UPDATE " + table + " SET " + column + "=" + content + " " + sql_exec)
+        self.cur.execute("UPDATE " + table + " SET " +
+                         column + "=" + content + " " + sql_exec)
         self.con.commit()
         self.close_connection()
 
-    def get_GameSave(self, username):
+    def get_game_save(self, username):
 
         self.open_connection()
-        res = self.cur.execute("""SELECT saveid FROM Spieler WHERE nutzername = '%s'""" % username)
+        res = self.cur.execute(
+            """SELECT saveid FROM Spieler WHERE nutzername = '%s'""" % username)
         save_game = res.fetchall()[0][0]
 
-        res = self.cur.execute("""SELECT name FROM Speicherstände WHERE id = '%s'""" % save_game)
+        res = self.cur.execute(
+            """SELECT name FROM Speicherstände WHERE id = '%s'""" % save_game)
 
         data = res.fetchall()
         self.close_connection()
@@ -210,3 +180,31 @@ class Database:
             return False
 
         return data
+
+    def set_locked(self, mail):
+        """Updates Blocked in Userdata"""
+        self.open_connection()
+        self.cur.execute(
+            """update Spieler set authversuche = authversuche - 1 WHERE mail = ?""", (mail,))
+        self.con.commit()
+        self.close_connection()
+
+    def get_locked(self, mail):
+        """Gets the id from Username"""
+        self.open_connection()
+        res = self.cur.execute("""SELECT authversuche 
+                                  FROM Spieler WHERE mail = ?""", (mail,))
+        data = res.fetchall()
+        self.close_connection()
+
+        data = int(data[0][0])
+
+        return data
+
+    def set_unlocked(self, mail):
+        """Updates Blocked in Userdata"""
+        self.open_connection()
+        self.cur.execute(
+            """update Spieler set authversuche = 3 WHERE mail = ?""", (mail,))
+        self.con.commit()
+        self.close_connection()

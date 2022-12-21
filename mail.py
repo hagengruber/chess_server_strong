@@ -19,18 +19,17 @@ class Mail:
     @staticmethod
     def create_code():
         """Creates Code for login"""
-        # ToDo: Für starke Version: Code ist Bruteforcebar!
-        return random.randint(1000, 99999)
+        return random.randint(1000000000, 9999999999)
 
     def send_mail(self, destination, code):
-
         """Sends mail"""
 
         destination = [destination]
         text_subtype = 'plain'
         subject = "Activation Code"
 
-        content = ' Thanks for your registration! Your activation Code is: ' + str(code)
+        content = ' Thanks for your registration! Your activation Code is: ' + \
+            str(code)
 
         msg = MIMEText(content, text_subtype)
         msg['Subject'] = subject
