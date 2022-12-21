@@ -31,6 +31,15 @@ class Model:
         self.currently_playing = 'White'
         self.ai = None
 
+    def remove_king(self, color):
+
+        for i in range(len(self.board_state)):
+            if self.board_state[i] is not None:
+                if type(self.board_state[i]) == King and self.board_state[i].colour == color:
+                    self.board_state[i] = None
+                    break
+
+
     def reset_pieces(self):
         """Reset the board to its starting state"""
         model = self

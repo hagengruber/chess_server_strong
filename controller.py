@@ -127,6 +127,10 @@ class Controller:
                     self.join_lobby()
                     self.coop()
 
+                    self.view.clear_console()
+                    self.view.print_menu(self.is_logged_in)
+                    self.get_menu_choice(self.view.get_menu_choice())
+
             elif user_input == 2:
                 self.model.ai = True
                 self.user_ai = AI(self.model, self.view,
@@ -413,6 +417,8 @@ class Controller:
             if games[i]['player1'] == self.user['username'] or games[i]['player2'] == self.user['username']:
                 return games, i
 
+        return None
+
     def start_game(self):
         """Starts the Game and goes into the Game Loop"""
 
@@ -496,7 +502,10 @@ class Controller:
                     self.get_movement_choice(self.view.get_movement_choice())
 
                 if move[2:] == "SAVE":
-                    # ToDo: Darf während pvp nicht möglich sein
+                    if self.ai is None:
+                        self.view.print("Illegal input")
+                        return None
+
                     self.save()
                     self.view.clear_console()
                     self.view.print_menu(True, "\nSaved current Game\n\n")
@@ -504,7 +513,8 @@ class Controller:
 
                 elif move[2:] == "SURRENDER":
                     self.model.view.clear_console()
-                    # ToDo: Surrender implementieren
+                    self.model.remove_king(self.user['color'])
+                    self.finish_game()
 
                 elif move[2:] == "DRAW":
                     draw = self.ask_draw()
@@ -765,6 +775,17 @@ class Controller:
 
             games = temp['games']
 
+            game_alive = False
+
+            for i in range(len(games)):
+                if games[i]['player1'] == self.user['username'] or games[i]['player2'] == self.user['username']:
+                    game_alive = True
+
+            if not game_alive:
+                break
+
+            self.release_lock()
+
             for i in range(len(games)):
                 if games[i]['player1'] == self.user['username'] or games[i]['player2'] == self.user['username']:
                     # if the correct game room was found
@@ -865,6 +886,11 @@ class Controller:
 
                     break
 
+        self.release_lock()
+        self.finish_game()
+
+    def finish_game(self):
+
         temp = None
 
         while temp is None:
@@ -907,12 +933,18 @@ class Controller:
                     self.get_menu_choice(self.view.get_menu_choice())
                     sys.exit()
 
+
     def check_for_draw(self):
 
         temp = None
 
         while temp is None:
             temp = self.get_queue_content(self.games)
+
+        room = self.get_room(temp)
+
+        if room is None:
+            return False
 
         games, i = self.get_room(temp)
 
