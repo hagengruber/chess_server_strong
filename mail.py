@@ -1,20 +1,23 @@
+"""
+    Sends the activation Code
+"""
+
 from email.mime.text import MIMEText
 from smtplib import SMTP_SSL as SMTP
 import random
 
 
 class Mail:
-
     """Sends activation code via mail"""
 
     def __init__(self):
 
         # D O   N O T   T O U C H !!
-        self.SMTPServer = 'smtp.ionos.de'
+        self.smtp_server = 'smtp.ionos.de'
         self.sender = 'chess_dev-team@hagengruber.dev'
-        self.USERNAME = "chess_dev-team@hagengruber.dev"
+        self.username = "chess_dev-team@hagengruber.dev"
         # ToDo: Für starke Version: Passwort ist hardcoded im Klartext
-        self.PASSWORD = "halonthxitol36598#!/89gotls"
+        self.password = "halonthxitol36598#!/89gotls"
 
     @staticmethod
     def create_code():
@@ -36,15 +39,17 @@ class Mail:
         msg['From'] = self.sender
 
         try:
-            conn = SMTP(self.SMTPServer)
+            conn = SMTP(self.smtp_server)
             conn.set_debuglevel(False)
-            conn.login(self.USERNAME, self.PASSWORD)
+            conn.login(self.username, self.password)
         except TimeoutError:
-            return "Failed to send email. Make sure that you are connected to the Internet and your " \
+            return "Failed to send email. Make sure that you are " \
+                   "connected to the Internet and your " \
                    "Firewall allows smtp connections"
 
         try:
             conn.sendmail(self.sender, destination, msg.as_string())
         finally:
             conn.quit()
-            return None
+        # ToDo: Testen ob return statement in finally muss
+        return None

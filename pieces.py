@@ -18,43 +18,33 @@ class Piece(metaclass=ABCMeta):
     @abstractmethod
     def check_legal_move(self, position):
         """Return True if move is legal, False else"""
-        pass
+        # instead of pass -> print
+        # because of pylint
+        print("ignore")
 
     def check_occupied_friendly(self, position, state):
         """Returns true if a given position exists and is occupied by a friendly piece"""
         if position in range(64):
             if state[position] is not None:
-                if state[position].colour == self.model.currently_playing:
-                    return True
-                else:
-                    return False
-            else:
-                return False
-        else:
+                return state[position].colour == self.model.currently_playing
             return False
+        return False
 
     def check_occupied_hostile(self, position, state):
         """Returns true if a given position exists and is occupied by a hostile piece"""
         if position in range(64):
             if state[position] is not None:
-                if state[position].colour != self.model.currently_playing:
-                    return True
-                else:
-                    return False
-            else:
-                return False
-        else:
+                return state[position].colour != self.model.currently_playing
             return False
+        return False
 
     def check_occupied(self, position, state):
         """Returns true if a given position exists and is occupied"""
         if position in range(64):
-            if self.check_occupied_hostile(position, state) or self.check_occupied_friendly(position, state):
-                return True
-            else:
-                return False
-        else:
-            return False
+            return self.check_occupied_hostile(position, state) \
+                    or self.check_occupied_friendly(position, state)
+
+        return False
 
     def check_linear(self, state):
         """Returns a list of all free spaces north, east, west and south of a given space"""
@@ -70,9 +60,8 @@ class Piece(metaclass=ABCMeta):
                 if self.check_occupied_hostile(space_to_check, state):
                     allowed.append(space_to_check)
                     break
-                else:
-                    allowed.append(space_to_check)
-                    space_to_check = space_to_check - 8
+                allowed.append(space_to_check)
+                space_to_check = space_to_check - 8
             else:
                 break
 
@@ -83,9 +72,8 @@ class Piece(metaclass=ABCMeta):
                 if self.check_occupied_hostile(space_to_check, state):
                     allowed.append(space_to_check)
                     break
-                else:
-                    allowed.append(space_to_check)
-                    space_to_check = space_to_check + 8
+                allowed.append(space_to_check)
+                space_to_check = space_to_check + 8
             else:
                 break
 
@@ -104,9 +92,8 @@ class Piece(metaclass=ABCMeta):
                 if self.check_occupied_hostile(space_to_check, state):
                     allowed.append(space_to_check)
                     break
-                else:
-                    allowed.append(space_to_check)
-                    space_to_check = space_to_check - 1
+                allowed.append(space_to_check)
+                space_to_check = space_to_check - 1
             else:
                 break
 
@@ -126,15 +113,17 @@ class Piece(metaclass=ABCMeta):
                 if self.check_occupied_hostile(space_to_check, state):
                     allowed.append(space_to_check)
                     break
-                else:
-                    allowed.append(space_to_check)
-                    space_to_check = space_to_check + 1
+                allowed.append(space_to_check)
+                space_to_check = space_to_check + 1
             else:
                 break
         return allowed
 
     def check_diagonal(self, state):
-        """Returns a list of all free spaces northeast, southeast, southwest and northwest of a given space"""
+        """
+            Returns a list of all free spaces northeast, southeast,
+            southwest and northwest of a given space
+        """
         allowed = []
 
         main_row = math.floor(self.position / 8)
@@ -156,9 +145,8 @@ class Piece(metaclass=ABCMeta):
                     if self.check_occupied_hostile(space_to_check, state):
                         allowed.append(space_to_check)
                         break
-                    else:
-                        allowed.append(space_to_check)
-                        space_to_check = space_to_check - 9
+                    allowed.append(space_to_check)
+                    space_to_check = space_to_check - 9
                 else:
                     break
             else:
@@ -180,9 +168,8 @@ class Piece(metaclass=ABCMeta):
                     if self.check_occupied_hostile(space_to_check, state):
                         allowed.append(space_to_check)
                         break
-                    else:
-                        allowed.append(space_to_check)
-                        space_to_check = space_to_check + 9
+                    allowed.append(space_to_check)
+                    space_to_check = space_to_check + 9
                 else:
                     break
             else:
@@ -204,9 +191,8 @@ class Piece(metaclass=ABCMeta):
                     if self.check_occupied_hostile(space_to_check, state):
                         allowed.append(space_to_check)
                         break
-                    else:
-                        allowed.append(space_to_check)
-                        space_to_check = space_to_check - 7
+                    allowed.append(space_to_check)
+                    space_to_check = space_to_check - 7
                 else:
                     break
             else:
@@ -228,9 +214,8 @@ class Piece(metaclass=ABCMeta):
                     if self.check_occupied_hostile(space_to_check, state):
                         allowed.append(space_to_check)
                         break
-                    else:
-                        allowed.append(space_to_check)
-                        space_to_check = space_to_check + 7
+                    allowed.append(space_to_check)
+                    space_to_check = space_to_check + 7
                 else:
                     break
             else:
@@ -264,13 +249,11 @@ class Rook(Piece):
         if self.model.show_symbols:
             if self.colour == 'White':
                 return '\u265C'
-            else:
-                return '\u2656'
-        else:
-            if self.colour == 'White':
-                return 'r'
-            else:
-                return 'R'
+            return '\u2656'
+
+        if self.colour == 'White':
+            return 'r'
+        return 'R'
 
     def check_legal_move(self, position, state="", return_all=False):
         """Makes a list of all legal moves and returns True if the given position is part of them"""
@@ -282,11 +265,8 @@ class Rook(Piece):
 
         if return_all:
             return allowed
-        if position in allowed:
-            return True
-        else:
-            return False
 
+        return position in allowed
 
 class Horse(Piece):
     """Class for Horses"""
@@ -314,13 +294,11 @@ class Horse(Piece):
         if self.model.show_symbols:
             if self.colour == 'White':
                 return '\u265E'
-            else:
-                return '\u2658'
-        else:
-            if self.colour == 'White':
-                return 'h'
-            else:
-                return 'H'
+            return '\u2658'
+
+        if self.colour == 'White':
+            return 'h'
+        return 'H'
 
     def check_legal_move(self, position, state="", return_all=False):
         """Makes a list of all legal moves and returns True if the given position is part of them"""
@@ -351,11 +329,7 @@ class Horse(Piece):
         if return_all:
             return allowed
 
-        if position in allowed:
-            return True
-        else:
-            return False
-
+        return position in allowed
 
 class Bishop(Piece):
     """Class for Bishops"""
@@ -383,13 +357,11 @@ class Bishop(Piece):
         if self.model.show_symbols:
             if self.colour == 'White':
                 return '\u265D'
-            else:
-                return '\u2657'
-        else:
-            if self.colour == 'White':
-                return 'b'
-            else:
-                return 'B'
+            return '\u2657'
+
+        if self.colour == 'White':
+            return 'b'
+        return 'B'
 
     def check_legal_move(self, position, state="", return_all=False):
         """Makes a list of all legal moves and returns True if the given position is part of them"""
@@ -401,11 +373,7 @@ class Bishop(Piece):
 
         if return_all:
             return allowed
-        if position in allowed:
-            return True
-        else:
-            return False
-
+        return position in allowed
 
 class Pawn(Piece):
     """Class for Pawns"""
@@ -433,13 +401,11 @@ class Pawn(Piece):
         if self.model.show_symbols:
             if self.colour == 'White':
                 return '\u265F'
-            else:
-                return '\u2659'
-        else:
-            if self.colour == 'White':
-                return 'p'
-            else:
-                return 'P'
+            return '\u2659'
+
+        if self.colour == 'White':
+            return 'p'
+        return 'P'
 
     def check_legal_move(self, position, state="", return_all=False):
         """Makes a list of all legal moves and returns True if the given position is part of them"""
@@ -477,24 +443,14 @@ class Pawn(Piece):
         if return_all:
             return allowed
 
-        if position in allowed:
-            return True
-        else:
-            return False
+        return position in allowed
 
     def upgrade(self):
         """Returns True if the Pawn is in an upgrade-position"""
         if self.colour == 'Black':
-            if self.position in range(56, 63):
-                return True
-            else:
-                return False
-        else:
-            if self.position in range(0, 7):
-                return True
-            else:
-                return False
+            return self.position in range(56, 63)
 
+        return self.position in range(0, 7)
 
 class Queen(Piece):
     """Class for Queens"""
@@ -522,13 +478,11 @@ class Queen(Piece):
         if self.model.show_symbols:
             if self.colour == 'White':
                 return '\u265B'
-            else:
-                return '\u2655'
-        else:
-            if self.colour == 'White':
-                return 'q'
-            else:
-                return 'Q'
+            return '\u2655'
+
+        if self.colour == 'White':
+            return 'q'
+        return 'Q'
 
     def check_legal_move(self, position, state="", return_all=False):
         """Makes a list of all legal moves and returns True if the given position is part of them"""
@@ -539,11 +493,7 @@ class Queen(Piece):
         allowed = self.check_linear(state) + self.check_diagonal(state)
         if return_all:
             return allowed
-        if position in allowed:
-            return True
-        else:
-            return False
-
+        return position in allowed
 
 class King(Piece):
     """Class for Kings"""
@@ -561,13 +511,11 @@ class King(Piece):
         if self.model.show_symbols:
             if self.colour == 'White':
                 return '\u265A'
-            else:
-                return '\u2654'
-        else:
-            if self.colour == 'White':
-                return 'k'
-            else:
-                return 'K'
+            return '\u2654'
+
+        if self.colour == 'White':
+            return 'k'
+        return 'K'
 
     def check_legal_move(self, position, state="", return_all=False):
         """Makes a list of all legal moves and returns True if the given position is part of them"""
@@ -599,7 +547,4 @@ class King(Piece):
 
         if return_all:
             return allowed
-        if position in allowed:
-            return True
-        else:
-            return False
+        return position in allowed

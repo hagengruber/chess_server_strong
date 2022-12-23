@@ -18,6 +18,7 @@ class View:
         self.count = 1
 
     def init_socket(self, socket):
+        """init the socket"""
         self.socket = socket
 
     def clear_console(self):
@@ -25,21 +26,25 @@ class View:
         self.socket.sendall("\033[H\033[J".encode())
 
     def input(self, text=None):
+        """gets the input of the user"""
         if text is not None:
             self.print(text)
 
         return self.socket.recv(1024).decode()
 
     def print(self, text):
+        """sends a text to the user"""
         self.socket.sendall(text.encode())
 
     def invalid_input(self, user_input):
+        """print error message"""
         self.print('Invalid input!')
         self.print(user_input)
 
     def update_board(self, state=""):
-        self.count += 1
         """Updates the board to show recent movement"""
+
+        self.count += 1
         self.clear_console()
 
         if state == "":
@@ -95,13 +100,16 @@ class View:
         message = pyfiglet.figlet_format("Chess Online")
         self.socket.sendall(message.encode())
 
-        message = '\n\n-Enter a move by giving the coordinates of the starting point and the goal point\n'
+        message = '\n\n-Enter a move by giving the coordinates of the ' \
+                  'starting point and the goal point\n'
         self.socket.sendall(message.encode())
-        message = '-During a match you can either enter a legal Move or "--Help" for further commands\n'
+        message = '-During a match you can either enter a legal Move or ' \
+                  '"--Help" for further commands\n'
         self.socket.sendall(message.encode())
 
         if login:
-            message = '(1)PlayerVsPlayer   (2)PlayerVsBot   (3)LoadGame   (4)Logout   (5)Exit\n'
+            message = '(1)PlayerVsPlayer   (2)PlayerVsBot   (3)LoadGame   ' \
+                      '(4)Logout   (5)Exit\n'
         else:
             message = '(1)Login   (2)Registration   (3)Exit\n'
 
@@ -118,10 +126,13 @@ class View:
         self.model.controller.get_menu_choice(self.get_menu_choice())
 
     def get_after_game_choice(self):
+        """get the user input after the game"""
+
         self.print('\nDo you want to play another round? (Y/N): ')
         return input()
 
     def get_menu_choice(self):
+        """get the users choice"""
 
         while True:
 
@@ -132,30 +143,39 @@ class View:
 
             except ValueError:
                 self.clear_console()
-                self.print_menu(self.model.controller.is_logged_in, sub_message="\nPlease enter an Integer\n")
+                self.print_menu(self.model.controller.is_logged_in,
+                                sub_message="\nPlease enter an Integer\n")
                 continue
 
             if user_input < 0 or user_input > 6:
                 self.clear_console()
-                self.print_menu(self.model.controller.is_logged_in, sub_message="\nPlease enter a valid Number\n")
-                continue
+                self.print_menu(self.model.controller.is_logged_in,
+                                sub_message="\nPlease enter a valid Number\n")
 
             else:
                 return user_input
 
     def get_symbol_preference(self):
+        """get the users preference"""
+
         self.print(
             '\nDo you want to use symbols? If not, letters will be used instead. (Y/N): ')
         return self.input()
 
     def get_movement_choice(self):
+        """get the move of the user"""
+
         self.print('Please enter your desired Move: ')
         return self.input()
 
     def show_stats(self, data):
+        """prints the stats  of the opponent"""
+
         self.print('Stats of the opponent: ' + str(data) + '\n')
 
     def get_help(self):
+        """print help for user"""
+
         self.print("legal move or\n")
         self.print("--stats - show opponent Stats\n")
         self.print("--save - Save and Quit Game\n")
@@ -163,14 +183,20 @@ class View:
         self.print("--surrender - Surrender\n")
 
     def accept_remis(self):
-        self.print('Do you want to accept Remis? ')
+        """asks if the user wants to accept the draw"""
+
+        self.print('Do you want to accept Draw? ')
         return self.input()
 
     def get_activation_code(self):
+        """get the activation code from the user"""
+
         self.print("\nEnter your activation Code: ")
         return self.input()
 
     def get_credentials(self, i):
+        """get the credentials of the user"""
+
         temp = []
         self.print('\nE-mail address:')
         temp.append(self.input())

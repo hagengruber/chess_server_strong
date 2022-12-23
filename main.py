@@ -7,9 +7,9 @@
 from multiprocessing import Queue
 from multiprocessing import Lock
 import multiprocessing as m
-from model import Model
 from queue import Empty
 import socket
+from model import Model
 
 
 class App:
@@ -17,8 +17,8 @@ class App:
     """Main function"""
 
     def __init__(self):
-        self.ip = socket.gethostbyname(socket.gethostname())
-        self.host = self.ip
+        self.ip_address = socket.gethostbyname(socket.gethostname())
+        self.host = self.ip_address
         self.port = 8080
 
         self.server_cert = './certs/server.crt'
@@ -38,10 +38,10 @@ class App:
         self.lock = Lock()
 
     @staticmethod
-    def connect_and_run(s, connect, lobby, threads, lock):
+    def connect_and_run(new_socket, connect, lobby, threads, lock):
         """Handles the Game for every User"""
 
-        model = Model(s, connect, lobby, threads, lock)
+        model = Model(new_socket, connect, lobby, threads, lock)
         model.controller.model = model
         model.view.model = model
 
@@ -60,18 +60,19 @@ class App:
         m.Process(target=App.check_launch_lobby,
                   args=(self.lock, self.lobby,)).start()
 
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind((self.host, self.port))
-            print("Server is listening on " + str(self.ip) +
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as new_socket:
+            new_socket.bind((self.host, self.port))
+            print("Server is listening on " + str(self.ip_address) +
                   " with Port " + str(self.port))
-            s.listen()
+            new_socket.listen()
 
             while True:
 
                 while self.connect.qsize() != 0:
                     self.connect.get()
                     self.threads += 1
-                    m.Process(target=App.listen, args=(s, self.connect, self.lobby, self.threads, self.lock)).start()
+                    m.Process(target=App.listen, args=(new_socket, self.connect,
+                                                       self.lobby, self.threads, self.lock)).start()
 
     @staticmethod
     def check_launch_lobby(lock, game):
@@ -154,9 +155,13 @@ class App:
 
                 # Creates a Game Room
                 games.append(
-                    {'player1': temp['lobby'][0]['username'], 'player2': temp['lobby'][1]['username'],
-                     'White': temp['lobby'][0]['username'], 'Black': temp['lobby'][1]['username'], 'last_move': None,
-                     'currently_playing': temp['lobby'][0]['username'], 'remis': None})
+                    {'player1': temp['lobby'][0]['username'],
+                     'player2': temp['lobby'][1]['username'],
+                     'White': temp['lobby'][0]['username'],
+                     'Black': temp['lobby'][1]['username'],
+                     'last_move': None,
+                     'currently_playing': temp['lobby'][0]['username'],
+                     'remis': None})
 
                 lobby.remove(lobby[0])
                 lobby.remove(lobby[0])
@@ -170,10 +175,11 @@ class App:
             release_lock(lock)
 
     @staticmethod
-    def listen(s, connect, lobby, threads, lock):
+    def listen(new_socket, connect, lobby, threads, lock):
         """Waits for a connection from a Client and starts the game loop"""
 
-        m.Process(target=App.connect_and_run, args=(s, connect, lobby, threads, lock)).start()
+        m.Process(target=App.connect_and_run,
+                  args=(new_socket, connect, lobby, threads, lock)).start()
 
 
 if __name__ == "__main__":

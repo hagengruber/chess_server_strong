@@ -23,7 +23,8 @@ class Database:
     def add_player(self, mail, password, username, code):
         """Adds a player to the 'Spieler' table"""
         self.open_connection()
-        self.cur.executescript("""INSERT INTO Spieler (mail, passwort, nutzername, aktivierungscode) VALUES
+        self.cur.executescript("""INSERT INTO Spieler
+                            (mail, passwort, nutzername, aktivierungscode) VALUES
                             ('%s', '%s', '%s', '%s')""" % (mail, password, username, code))
         self.con.commit()
         self.close_connection()
@@ -31,7 +32,7 @@ class Database:
     def add_game(self, player1_id, player2_id, victor_id):
         """Adds a completed game to the 'Spiele' table"""
         self.open_connection()
-        self.cur.execute("""INSERT INTO Spiele (spieler1id, spieler2id, siegerid) VALUES 
+        self.cur.execute("""INSERT INTO Spiele (spieler1id, spieler2id, siegerid) VALUES
                             ('%s', '%s', '%s')""" % (player1_id, player2_id, victor_id))
         self.con.commit()
         self.close_connection()
@@ -42,11 +43,13 @@ class Database:
         self.cur.execute(
             """INSERT INTO Speicherstände (name) VALUES ('%s')""" % data_name)
         self.con.commit()
-        pk = self.cur.lastrowid
+        primary_key = self.cur.lastrowid
         self.close_connection()
-        return pk
+        return primary_key
 
     def remove_save(self, username):
+        """Removes the Save state from the user"""
+
         self.open_connection()
 
         res = self.cur.execute(
@@ -118,7 +121,7 @@ class Database:
     def fetch_public_userdata(self, player_id):
         """Returns a players public data"""
         self.open_connection()
-        res = self.cur.execute("""SELECT nutzername, siege, niederlagen, remis, elo 
+        res = self.cur.execute("""SELECT nutzername, siege, niederlagen, remis, elo
                                   FROM Spieler WHERE id = '%s'""" % player_id)
         data = res.fetchall()
         self.close_connection()
@@ -144,7 +147,7 @@ class Database:
     def get_id(self, username):
         """Gets the id from Username"""
         self.open_connection()
-        res = self.cur.execute("""SELECT id 
+        res = self.cur.execute("""SELECT id
                                   FROM Spieler WHERE nutzername = '%s'""" % username)
         data = res.fetchall()
         self.close_connection()
@@ -162,6 +165,7 @@ class Database:
         self.close_connection()
 
     def get_game_save(self, username):
+        """returns the json formatted game save"""
 
         self.open_connection()
         res = self.cur.execute(
@@ -192,7 +196,7 @@ class Database:
     def get_locked(self, mail):
         """Gets the id from Username"""
         self.open_connection()
-        res = self.cur.execute("""SELECT authversuche 
+        res = self.cur.execute("""SELECT authversuche
                                   FROM Spieler WHERE mail = ?""", (mail,))
         data = res.fetchall()
         self.close_connection()
