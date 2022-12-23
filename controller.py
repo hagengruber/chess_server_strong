@@ -40,6 +40,7 @@ class Controller:
                       'm', 'n', '0', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
         self.numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         self.specials = ['!', '?', '§', '$', '%', '&', '#', '@']
+        self.allowed_mail_chars = self.upper + self.lower + self.numbers + ['@', '-', '.']
         self.forbidden = ['"', "--", "'", ";"]
 
     def run(self):
@@ -309,8 +310,8 @@ class Controller:
         mail = temp[0]
         password = Controller.hash_password(temp[1])
 
-        for c in self.forbidden:
-            if c in mail:
+        for c in mail:
+            if c not in self.allowed_mail_chars or c in self.forbidden:
                 return "Wrong Credentials. Please Try again"
 
         res = self.db.fetch_general_data(
