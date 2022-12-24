@@ -981,7 +981,7 @@ class Controller:
                 if games_new[iterator]['remis'] is not None:
                     if not games_new[iterator]['remis']:
                         return False
-                    if games_new[iterator]['remis']:
+                    if games_new[iterator]['remis'] is True:
                         return True
 
                     answer = self.view.input('\n' + str(games_new[iterator]['remis']) +
