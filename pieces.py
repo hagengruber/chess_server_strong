@@ -14,6 +14,7 @@ class Piece(metaclass=ABCMeta):
         self.colour = None
         self.moved = False
         self.position = None
+        self.score = None
 
     @abstractmethod
     def check_legal_move(self, position):
@@ -42,7 +43,7 @@ class Piece(metaclass=ABCMeta):
         """Returns true if a given position exists and is occupied"""
         if position in range(64):
             return self.check_occupied_hostile(position, state) \
-                    or self.check_occupied_friendly(position, state)
+                or self.check_occupied_friendly(position, state)
 
         return False
 
@@ -243,6 +244,7 @@ class Rook(Piece):
             [5, 10, 10, 10, 10, 10, 10, 5],
             [0, 0, 0, 0, 0, 0, 0, 0]
         ]
+        self.score = 500
 
     def set_symbol(self):
         """Returns the Symbol the given piece should display"""
@@ -268,6 +270,7 @@ class Rook(Piece):
 
         return position in allowed
 
+
 class Horse(Piece):
     """Class for Horses"""
 
@@ -288,6 +291,7 @@ class Horse(Piece):
             [-40, -20, 0, 0, 0, 0, -20, -40],
             [-50, -40, -30, -30, -30, -30, -40, -50]
         ]
+        self.score = 320
 
     def set_symbol(self):
         """Returns the Symbol the given piece should display"""
@@ -331,6 +335,7 @@ class Horse(Piece):
 
         return position in allowed
 
+
 class Bishop(Piece):
     """Class for Bishops"""
 
@@ -351,6 +356,7 @@ class Bishop(Piece):
             [-10, 0, 0, 0, 0, 0, 0, -10],
             [-20, -10, -10, -10, -10, -10, -10, -20]
         ]
+        self.score = 330
 
     def set_symbol(self):
         """Returns the Symbol the given piece should display"""
@@ -375,6 +381,7 @@ class Bishop(Piece):
             return allowed
         return position in allowed
 
+
 class Pawn(Piece):
     """Class for Pawns"""
 
@@ -395,6 +402,7 @@ class Pawn(Piece):
             [50, 50, 50, 50, 50, 50, 50, 50],
             [0, 0, 0, 0, 0, 0, 0, 0]
         ]
+        self.score = 100
 
     def set_symbol(self):
         """Returns the Symbol the given piece should display"""
@@ -425,7 +433,7 @@ class Pawn(Piece):
             if self.check_occupied_hostile(self.position - 7, state) and column != 7:
                 allowed.append(self.position - 7)
             if not self.moved:
-                if not self.check_occupied(self.position - 16, state) and\
+                if not self.check_occupied(self.position - 16, state) and \
                         not self.check_occupied(self.position - 8, state):
                     allowed.append(self.position - 16)
         else:
@@ -436,7 +444,7 @@ class Pawn(Piece):
             if self.check_occupied_hostile(self.position + 7, state) and column != 0:
                 allowed.append(self.position + 7)
             if not self.moved:
-                if not self.check_occupied(self.position + 16, state) and\
+                if not self.check_occupied(self.position + 16, state) and \
                         not self.check_occupied(self.position + 8, state):
                     allowed.append(self.position + 16)
 
@@ -451,6 +459,7 @@ class Pawn(Piece):
             return self.position in range(56, 63)
 
         return self.position in range(0, 7)
+
 
 class Queen(Piece):
     """Class for Queens"""
@@ -472,6 +481,7 @@ class Queen(Piece):
             [-10, 0, 0, 0, 0, 0, 0, -10],
             [-20, -10, -10, -5, -5, -10, -10, -20]
         ]
+        self.score = 900
 
     def set_symbol(self):
         """Returns the Symbol the given piece should display"""
@@ -495,6 +505,7 @@ class Queen(Piece):
             return allowed
         return position in allowed
 
+
 class King(Piece):
     """Class for Kings"""
 
@@ -505,6 +516,7 @@ class King(Piece):
         self.symbol = self.set_symbol()
         self.position = position
         self.moved = moved
+        self.score = 20000
 
     def set_symbol(self):
         """Returns the Symbol the given piece should display"""

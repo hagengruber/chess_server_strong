@@ -106,47 +106,18 @@ class AI:
 
         for i in current_game_state:
 
-            if isinstance(i, pieces.Rook):
+            if i is None:
+                continue
 
-                if i.colour == "White":
-                    white += 500
-                else:
-                    black += 500
-
-            if isinstance(i, pieces.Pawn):
-                if i.colour == "White":
-                    white += 100
-                else:
-                    black += 100
-
-            if isinstance(i, pieces.Horse):
-                if i.colour == "White":
-                    white += 320
-                else:
-                    black += 320
-
-            if isinstance(i, pieces.Bishop):
-                if i.colour == "White":
-                    white += 330
-                else:
-                    black += 330
-
-            if isinstance(i, pieces.King):
-                if i.colour == "White":
-                    white += 20000
-                else:
-                    black += 20000
-
-            if isinstance(i, pieces.Queen):
-                if i.colour == "White":
-                    white += 900
-                else:
-                    black += 900
+            if i.colour == "White":
+                white += i.score
+            else:
+                black += i.score
 
         return white - black
 
-    # @staticmethod
-    def score_position(self, pieces_type, table, piece_val, current_game_state):
+    @staticmethod
+    def score_position(pieces_type, table, piece_val, current_game_state):
         """Evaluates the current position of a pieces"""
         white = 0
         black = 0
@@ -157,11 +128,11 @@ class AI:
                 if i.colour == "White":
                     white += piece_val
                 else:
-                    y_coordinate = math.floor(count/8)
+                    y_coordinate = math.floor(count / 8)
                     x_coordinate = count - (y_coordinate * 7) - y_coordinate
-                    black += table[7-x_coordinate][y_coordinate]
+                    black += table[7 - x_coordinate][y_coordinate]
             count += 1
-        return white-black
+        return white - black
 
     # @staticmethod
     def calculate_board_value(self, current_game_state):
@@ -220,11 +191,11 @@ class AI:
             [0, 0, 0, 0, 0, 0, 0, 0]
         ]
 
-        pawn = self.score_position(pieces.Pawn, pawn_table, 100, current_game_state)
-        horse = self.score_position(pieces.Horse, horse_table, 320, current_game_state)
-        bishop = self.score_position(pieces.Bishop, bishop_table, 330, current_game_state)
-        rook = self.score_position(pieces.Rook, rook_table, 500, current_game_state)
-        queen = self.score_position(pieces.Queen, queen_table, 900, current_game_state)
+        pawn = AI.score_position(pieces.Pawn, pawn_table, 100, current_game_state)
+        horse = AI.score_position(pieces.Horse, horse_table, 320, current_game_state)
+        bishop = AI.score_position(pieces.Bishop, bishop_table, 330, current_game_state)
+        rook = AI.score_position(pieces.Rook, rook_table, 500, current_game_state)
+        queen = AI.score_position(pieces.Queen, queen_table, 900, current_game_state)
 
         return piece + pawn + rook + horse + bishop + queen
 
@@ -238,10 +209,9 @@ class AI:
             try:
                 if i.colour == color:
                     possible_move = i.check_legal_move(i.position, state, True)
-                    if len(possible_move) > 0:
-                        for moves in possible_move:
-                            if 0 < moves < 64:
-                                move.append([i.position, moves])
+                    for moves in possible_move:
+                        if 0 < moves < 64:
+                            move.append([i.position, moves])
 
             except AttributeError:
                 continue
@@ -301,15 +271,14 @@ class AI:
         possible_moves = self.get_possible_moves(self.color, state)
         result = []
 
-        threads = cpu_count()
-
         # Splits the list possible_moves in as many chunks as the PC has cores
-        var_k, var_a = divmod(len(possible_moves), threads)
+        var_k, var_a = divmod(len(possible_moves), cpu_count())
 
         process_moves = list(possible_moves[i * var_k + min(i, var_a):
-                                            (i + 1) * var_k + min(i + 1, var_a)] for i in range(threads))
+                                            (i + 1) * var_k + min(i + 1, var_a)] for i
+                             in range(cpu_count()))
 
-        output = tqdm(total=threads)
+        output = tqdm(total=cpu_count())
 
         processes = []
         queue = Queue()
@@ -345,10 +314,9 @@ class AI:
 
             result = sorted(result, key=lambda x: x[1])
             same_score = []
-            lower_score = result[0][1]
 
             for i in result:
-                if i[1] == lower_score:
+                if i[1] == result[0][1]:
                     same_score.append(i)
 
             same_score.sort()
