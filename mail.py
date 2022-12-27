@@ -4,8 +4,8 @@
 
 from email.mime.text import MIMEText
 from smtplib import SMTP_SSL as SMTP
-import random
 import json
+from os import urandom
 
 
 class Mail:
@@ -23,8 +23,8 @@ class Mail:
 
     @staticmethod
     def create_code():
-        """Creates Code for login"""
-        return random.randint(1000000000, 9999999999)
+        """Creates 10 Byte Code for login"""
+        return int.from_bytes(urandom(10), byteorder="big")
 
     def send_mail(self, destination, code):
         """Sends mail"""
