@@ -17,9 +17,6 @@ from algorithm import AI
 class Controller:
     """Class that handles everything for the module"""
 
-    # SSL Zertifikat:
-    # https://www.howtoforge.de/anleitung/howto-selbstsigniertes-ssl-zertifikat-erstellen/
-
     def __init__(self, view, socket, connect, games, num_of_thread, lock):
         self.socket = socket
         self.connect = connect
@@ -58,7 +55,7 @@ class Controller:
         with conn:
             self.connect.put(True)
             print("Server is connected with port " + str(addr))
-            welcome = "Hello. You are connected to the Chess Server. Your port is "\
+            welcome = "Hello. You are connected to the Chess Server. Your port is " \
                       + str(addr[1]) + '\n\n'
             conn.sendall(welcome.encode())
 
@@ -125,7 +122,7 @@ class Controller:
                 if not self.is_logged_in:
                     self.view.clear_console()
                     self.view.print_menu(self.is_logged_in, sub_message="\nLogin"
-                                        "is required to play games with other players\n\n")
+                                                                        "is required to play games with other players\n\n")
                     self.get_menu_choice(self.view.get_menu_choice())
                 else:
                     self.join_lobby()
@@ -221,7 +218,7 @@ class Controller:
                     "Password contains a forbidden Character")
                 return False
 
-        if upper_character >= 2 and lower_character >= 2\
+        if upper_character >= 2 and lower_character >= 2 \
                 and number >= 2 and special_character >= 2:
 
             if 10 <= len(password) <= 20:
@@ -250,7 +247,7 @@ class Controller:
             password2 = temp[2]
 
             try:
-                valid_th_mail = mail.split("@")[1] == "stud.th-deg.de"\
+                valid_th_mail = mail.split("@")[1] == "stud.th-deg.de" \
                                 or mail.split("@")[1] == "th-deg.de"
 
             except IndexError:
@@ -315,8 +312,8 @@ class Controller:
         password = Controller.hash_password(temp[1])
 
         for character in mail:
-            if character not in self.allowed_mail_chars\
-                or character in self.forbidden:
+            if character not in self.allowed_mail_chars \
+                    or character in self.forbidden:
                 return "Wrong Credentials. Please Try again"
 
         res = self.database_connection.fetch_general_data(
@@ -499,7 +496,6 @@ class Controller:
 
             if re.match('^--', move):
                 if move[2:] == "STATS":
-
                     pers = self.database_connection.fetch_public_userdata(
                         14)  # eid where nutzername = enemy
 
@@ -533,7 +529,7 @@ class Controller:
                         self.database_connection.get_id(self.user['enemy']))
                     self.database_connection.add_game(
                         self.database_connection.get_id(
-                        self.user['username']),
+                            self.user['username']),
                         self.database_connection.get_id(self.user['enemy']), None)
 
                     self.remove_game()
@@ -665,7 +661,7 @@ class Controller:
         games = temp['games']
 
         for i in range(len(games)):
-            if games[i]['player1'] == self.user['username']\
+            if games[i]['player1'] == self.user['username'] \
                     or games[i]['player2'] == self.user['username']:
                 # if the correct game room was found
 
@@ -700,7 +696,7 @@ class Controller:
             games = temp['games']
 
             for i in range(len(games)):
-                if games[i]['player1'] == self.user['username']\
+                if games[i]['player1'] == self.user['username'] \
                         or games[i]['player2'] == self.user['username']:
                     # if the correct game room was found
 
@@ -721,7 +717,7 @@ class Controller:
             games = temp['games']
 
             for i in range(len(games)):
-                if games[i]['player1'] == self.user['username']\
+                if games[i]['player1'] == self.user['username'] \
                         or games[i]['player2'] == self.user['username']:
                     # if the correct game room was found
 
@@ -792,7 +788,7 @@ class Controller:
             game_alive = False
 
             for i in range(len(games)):
-                if games[i]['player1'] == self.user['username']\
+                if games[i]['player1'] == self.user['username'] \
                         or games[i]['player2'] == self.user['username']:
                     game_alive = True
 
@@ -802,7 +798,7 @@ class Controller:
             self.release_lock()
 
             for i in range(len(games)):
-                if games[i]['player1'] == self.user['username']\
+                if games[i]['player1'] == self.user['username'] \
                         or games[i]['player2'] == self.user['username']:
                     # if the correct game room was found
                     if games[i]['currently_playing'] == self.user['username']:
@@ -823,7 +819,7 @@ class Controller:
                                 move=games[i]['last_move'], update=False)
 
                         # Check if both kings are still alive
-                        if not self.model.check_for_king('White')\
+                        if not self.model.check_for_king('White') \
                                 or not self.model.check_for_king('Black'):
                             self.view.clear_console()
                             self.view.print_menu(True)
@@ -918,7 +914,7 @@ class Controller:
         games = temp['games']
 
         for i in range(len(games)):
-            if games[i]['player1'] == self.user['username']\
+            if games[i]['player1'] == self.user['username'] \
                     or games[i]['player2'] == self.user['username']:
                 # if the correct game room was found
                 if games[i]['player1'] == self.user['username']:
