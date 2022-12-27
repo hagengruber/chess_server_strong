@@ -5,6 +5,7 @@
 from email.mime.text import MIMEText
 from smtplib import SMTP_SSL as SMTP
 import random
+import json
 
 
 class Mail:
@@ -12,12 +13,13 @@ class Mail:
 
     def __init__(self):
 
-        # D O   N O T   T O U C H !!
-        self.smtp_server = 'smtp.ionos.de'
-        self.sender = 'chess_dev-team@hagengruber.dev'
-        self.username = "chess_dev-team@hagengruber.dev"
-        # ToDo: Für starke Version: Passwort ist hardcoded im Klartext
-        self.password = "halonthxitol36598#!/89gotls"
+        with open('./certs/smtp.json') as f:
+            json_dumb = json.load(f)
+
+        self.smtp_server = json_dumb['server']
+        self.sender = json_dumb['sender']
+        self.username = json_dumb['username']
+        self.password = json_dumb['password']
 
     @staticmethod
     def create_code():
@@ -32,7 +34,7 @@ class Mail:
         subject = "Activation Code"
 
         content = ' Thanks for your registration! Your activation Code is: ' + \
-            str(code)
+                  str(code)
 
         msg = MIMEText(content, text_subtype)
         msg['Subject'] = subject

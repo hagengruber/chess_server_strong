@@ -165,7 +165,7 @@ class Controller:
 
                 if erg is None:
                     self.view.print_menu(
-                        self.is_logged_in, sub_message="\nCode was sent to your email address\n\n")
+                        self.is_logged_in, sub_message="\nCode was sent to your email address\n")
                 else:
                     # If something went wrong
                     self.view.print_menu(self.is_logged_in, sub_message="\n" + erg + "\n\n")
