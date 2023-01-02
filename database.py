@@ -23,9 +23,9 @@ class Database:
     def add_player(self, mail, password, username, code):
         """Adds a player to the 'Spieler' table"""
         self.open_connection()
-        self.cur.executescript("""INSERT INTO Spieler
+        self.cur.execute("""INSERT INTO Spieler
                             (mail, passwort, nutzername, aktivierungscode) VALUES
-                            ('%s', '%s', '%s', '%s')""" % (mail, password, username, code))
+                            (?, ?, ?, ?)""", (mail, password, username, code))
         self.con.commit()
         self.close_connection()
 
@@ -144,6 +144,22 @@ class Database:
         self.close_connection()
         return data
 
+    def fetch_data_from_mail(self, mail):
+        """Gets userdata using a mail address"""
+        self.open_connection()
+        res = self.cur.execute("""SELECT * FROM Spieler WHERE mail = ?""", (mail,))
+        data = res.fetchall()
+        self.close_connection()
+        return data
+
+    def fetch_data_from_credentials(self, mail, password):
+        """Gets userdata using a mail address and a password"""
+        self.open_connection()
+        res = self.cur.execute("""SELECT * FROM Spieler WHERE mail = ? AND passwort = ?""", (mail, password))
+        data = res.fetchall()
+        self.close_connection()
+        return data
+
     def get_id(self, username):
         """Gets the id from Username"""
         self.open_connection()
@@ -161,6 +177,13 @@ class Database:
         self.open_connection()
         self.cur.execute("UPDATE " + table + " SET " +
                          column + "=" + content + " " + sql_exec)
+        self.con.commit()
+        self.close_connection()
+
+    def delete_activation_code(self, mail):
+        """Delete activation code from account with given mail address"""
+        self.open_connection()
+        self.cur.execute("""UPDATE Spieler SET aktivierungscode = NULL WHERE mail = ?""", (mail,))
         self.con.commit()
         self.close_connection()
 

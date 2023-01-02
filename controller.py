@@ -316,8 +316,7 @@ class Controller:
                     or character in self.forbidden:
                 return "Wrong Credentials. Please Try again"
 
-        res = self.database_connection.fetch_general_data(
-            "*", "Spieler", "WHERE mail='" + mail + "';")
+        res = self.database_connection.fetch_data_from_mail(mail)
 
         # If the Email Address doesn't exist
         if len(res) == 0:
@@ -330,8 +329,7 @@ class Controller:
                    "Please contact chess_dev-team@hagengruber.dev for an unlock request"
 
         # Check if the Password is not correct
-        if not res == self.database_connection.fetch_general_data(
-                "*", "Spieler", "WHERE mail='" + mail + "' and passwort='" + password + "';"):
+        if not res == self.database_connection.fetch_data_from_credentials(mail, password):
             self.database_connection.set_locked(mail)
             return "Wrong Credentials. Please Try again"
 
@@ -344,8 +342,7 @@ class Controller:
             # If Code in Database (hash) is equal to the Hash from the Code the User inserted
             if res[0][9] == self.hash_password(code):
                 # Set 'aktivierungscode' to null
-                self.database_connection.update_general_data(
-                    'Spieler', '"aktivierungscode"', 'NULL', 'WHERE mail="' + mail + '";')
+                self.database_connection.delete_activation_code(mail)
             else:
                 self.database_connection.set_locked(mail)
                 return "Wrong activation Code"
