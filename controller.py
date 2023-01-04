@@ -26,9 +26,9 @@ class Controller:
         self.games = games
         self.user = {'username': None, 'num_of_thread': num_of_thread,
                      'game_queue': None, 'color': '', 'enemy': ''}
-        self.argon = security.argon_hash()
-        self.inpval = security.input_validation()
-        self.pw = security.password()
+        self.argon = security.ArgonHash()
+        self.inpval = security.InputValidation()
+        self.pw = security.Password()
 
         self.lock = lock
         self.database_connection = database.Database()

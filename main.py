@@ -9,7 +9,7 @@ from multiprocessing import Lock
 import multiprocessing as m
 from queue import Empty
 import socket
-from security import communication
+from security import Communication
 from model import Model
 
 
@@ -46,7 +46,7 @@ class App:
         model.controller.model = model
         model.view.model = model
 
-        com = communication(new_socket, connect, model.view)
+        com = Communication(new_socket, connect, model.view)
 
         try:
             com.run()
