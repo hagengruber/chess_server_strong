@@ -23,7 +23,8 @@ class Database:
     def add_player(self, mail, password, username, code):
         """Adds a player to the 'Spieler' table"""
         self.open_connection()
-        self.cur.executescript("""INSERT INTO Spieler (mail, passwort, nutzername, aktivierungscode) VALUES
+        self.cur.executescript("""INSERT INTO Spieler
+                            (mail, passwort, nutzername, aktivierungscode) VALUES
                             ('%s', '%s', '%s', '%s')""" % (mail, password, username, code))
         self.con.commit()
         self.close_connection()
@@ -31,22 +32,24 @@ class Database:
     def add_game(self, player1_id, player2_id, victor_id):
         """Adds a completed game to the 'Spiele' table"""
         self.open_connection()
-        self.cur.execute("""INSERT INTO Spiele (spieler1id, spieler2id, siegerid) VALUES 
+        self.cur.execute("""INSERT INTO Spiele (spieler1id, spieler2id, siegerid) VALUES
                             ('%s', '%s', '%s')""" % (player1_id, player2_id, victor_id))
         self.con.commit()
         self.close_connection()
 
-    def add_save(self, dataname):
+    def add_save(self, data_name):
         """Adds a savestate to the 'Speicherstände' table"""
         self.open_connection()
         self.cur.execute(
-            """INSERT INTO Speicherstände (name) VALUES ('%s')""" % dataname)
+            """INSERT INTO Speicherstände (name) VALUES ('%s')""" % data_name)
         self.con.commit()
-        pk = self.cur.lastrowid
+        primary_key = self.cur.lastrowid
         self.close_connection()
-        return pk
+        return primary_key
 
     def remove_save(self, username):
+        """Removes the Save state from the user"""
+
         self.open_connection()
 
         res = self.cur.execute(
@@ -54,7 +57,7 @@ class Database:
 
         save_id = res.fetchall()[0][0]
 
-        self.change_saveid(self.get_id(username), 0, end_connection=False)
+        self.change_save_id(self.get_id(username), 0, end_connection=False)
 
         self.cur.execute(
             """DELETE FROM Speicherstände WHERE id='%s'""" % save_id)
@@ -85,8 +88,8 @@ class Database:
         self.con.commit()
         self.close_connection()
 
-    def change_saveid(self, player_id, save_id, end_connection=True):
-        """Changes the saveid of a given player to the id of a given savestate"""
+    def change_save_id(self, player_id, save_id, end_connection=True):
+        """Changes the save_id of a given player to the id of a given savestate"""
         self.open_connection()
         self.cur.execute(
             """UPDATE Spieler SET saveid = '%s' WHERE id = '%s'""" % (save_id, player_id))
@@ -118,7 +121,7 @@ class Database:
     def fetch_public_userdata(self, player_id):
         """Returns a players public data"""
         self.open_connection()
-        res = self.cur.execute("""SELECT nutzername, siege, niederlagen, remis, elo 
+        res = self.cur.execute("""SELECT nutzername, siege, niederlagen, remis, elo
                                   FROM Spieler WHERE id = '%s'""" % player_id)
         data = res.fetchall()
         self.close_connection()
@@ -133,47 +136,10 @@ class Database:
         self.close_connection()
         return data
 
-    def fetch_public_gamedata(self, game_id):
-        """Returns public information for a game"""
-        self.open_connection()
-        res = self.cur.execute(
-            """SELECT spieler1id, spieler2id, siegerid FROM Spiele WHERE id = '%s'""" % game_id)
-        data = res.fetchall()
-        self.close_connection()
-        return data
-
-    def fetch_full_gamedata(self, game_id):
-        """Returns full information for a game"""
-        self.open_connection()
-        res = self.cur.execute(
-            """SELECT * FROM Spiele WHERE id = '%s'""" % game_id)
-        data = res.fetchall()
-        self.close_connection()
-        return data
-
-    def fetch_full_savedata(self, save_id):
-        """Returns full information for a savestate"""
-        self.open_connection()
-        res = self.cur.execute(
-            """SELECT * FROM Speicherstände WHERE id = '%s'""" % save_id)
-        data = res.fetchall()
-        self.close_connection()
-        return data
-
-    def fetch_general_data(self, filter, database, sql_exec=""):
+    def fetch_general_data(self, table_filter, database, sql_exec=""):
         """Executes SQL statements for general purpose"""
         self.open_connection()
-        res = self.cur.execute("SELECT " + filter +
-                               " FROM " + database + " " + sql_exec)
-        data = res.fetchall()
-        self.close_connection()
-        return data
-
-    def fetch_general_data(self, filter, table, sql_exec=""):
-        """Executes SQL statements for general select purpose"""
-        self.open_connection()
-        res = self.cur.execute("SELECT " + filter +
-                               " FROM " + table + " " + sql_exec)
+        res = self.cur.execute("SELECT " + table_filter + " FROM " + database + " " + sql_exec)
         data = res.fetchall()
         self.close_connection()
         return data
@@ -181,7 +147,7 @@ class Database:
     def get_id(self, username):
         """Gets the id from Username"""
         self.open_connection()
-        res = self.cur.execute("""SELECT id 
+        res = self.cur.execute("""SELECT id
                                   FROM Spieler WHERE nutzername = '%s'""" % username)
         data = res.fetchall()
         self.close_connection()
@@ -198,7 +164,8 @@ class Database:
         self.con.commit()
         self.close_connection()
 
-    def get_GameSave(self, username):
+    def get_game_save(self, username):
+        """returns the json formatted game save"""
 
         self.open_connection()
         res = self.cur.execute(
@@ -221,16 +188,16 @@ class Database:
     def set_locked(self, mail):
         """Updates Blocked in Userdata"""
         self.open_connection()
-        res = self.cur.execute(
-            """update Spieler set authversuche = authversuche - 1 WHERE mail = ?""", mail)
+        self.cur.execute(
+            """update Spieler set authversuche = authversuche - 1 WHERE mail = ?""", (mail,))
         self.con.commit()
         self.close_connection()
 
     def get_locked(self, mail):
         """Gets the id from Username"""
         self.open_connection()
-        res = self.cur.execute("""SELECT authversuche 
-                                  FROM Spieler WHERE mail = ?""", mail)
+        res = self.cur.execute("""SELECT authversuche
+                                  FROM Spieler WHERE mail = ?""", (mail,))
         data = res.fetchall()
         self.close_connection()
 
@@ -241,7 +208,7 @@ class Database:
     def set_unlocked(self, mail):
         """Updates Blocked in Userdata"""
         self.open_connection()
-        res = self.cur.execute(
-            """update Spieler set authversuche = 3 WHERE mail = ?""", mail)
+        self.cur.execute(
+            """update Spieler set authversuche = 3 WHERE mail = ?""", (mail,))
         self.con.commit()
         self.close_connection()

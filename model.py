@@ -7,31 +7,52 @@ from controller import Controller
 from database import Database
 from view import View
 
-# noinspection PyTypeChecker
-
 
 class Model:
     """Class that handles everything for the module"""
 
-    def __init__(self, socket, lobby, num_of_thread, lock):
+    def __init__(self, socket, connect, lobby, num_of_thread, lock):
 
         self.board_state = list(None for _ in range(64))
-        self.view = View(socket)
+        self.view = View()
         self.controller = Controller(
-            self.view, socket, lobby, num_of_thread, lock)
+            self.view, socket, connect, lobby, num_of_thread, lock)
         self.database = Database()
         self.show_symbols = True
-        self.correlation = {'A1': 0, 'A2': 1, 'A3': 2, 'A4': 3, 'A5': 4, 'A6': 5, 'A7': 6, 'A8': 7,
-                            'B1': 8, 'B2': 9, 'B3': 10, 'B4': 11, 'B5': 12, 'B6': 13, 'B7': 14, 'B8': 15,
-                            'C1': 16, 'C2': 17, 'C3': 18, 'C4': 19, 'C5': 20, 'C6': 21, 'C7': 22, 'C8': 23,
-                            'D1': 24, 'D2': 25, 'D3': 26, 'D4': 27, 'D5': 28, 'D6': 29, 'D7': 30, 'D8': 31,
-                            'E1': 32, 'E2': 33, 'E3': 34, 'E4': 35, 'E5': 36, 'E6': 37, 'E7': 38, 'E8': 39,
-                            'F1': 40, 'F2': 41, 'F3': 42, 'F4': 43, 'F5': 44, 'F6': 45, 'F7': 46, 'F8': 47,
-                            'G1': 48, 'G2': 49, 'G3': 50, 'G4': 51, 'G5': 52, 'G6': 53, 'G7': 54, 'G8': 55,
-                            'H1': 56, 'H2': 57, 'H3': 58, 'H4': 59, 'H5': 60, 'H6': 61, 'H7': 62, 'H8': 63}
+        self.correlation = {'A1': 0, 'A2': 1, 'A3': 2, 'A4': 3, 'A5': 4,
+                            'A6': 5, 'A7': 6, 'A8': 7,
+                            'B1': 8, 'B2': 9, 'B3': 10,
+                            'B4': 11, 'B5': 12, 'B6': 13,
+                            'B7': 14, 'B8': 15, 'C1': 16,
+                            'C2': 17, 'C3': 18, 'C4': 19,
+                            'C5': 20, 'C6': 21, 'C7': 22,
+                            'C8': 23, 'D1': 24, 'D2': 25,
+                            'D3': 26, 'D4': 27, 'D5': 28,
+                            'D6': 29, 'D7': 30, 'D8': 31,
+                            'E1': 32, 'E2': 33, 'E3': 34,
+                            'E4': 35, 'E5': 36, 'E6': 37,
+                            'E7': 38, 'E8': 39, 'F1': 40,
+                            'F2': 41, 'F3': 42, 'F4': 43,
+                            'F5': 44, 'F6': 45, 'F7': 46,
+                            'F8': 47, 'G1': 48, 'G2': 49,
+                            'G3': 50, 'G4': 51, 'G5': 52,
+                            'G6': 53, 'G7': 54, 'G8': 55,
+                            'H1': 56, 'H2': 57, 'H3': 58,
+                            'H4': 59, 'H5': 60, 'H6': 61,
+                            'H7': 62, 'H8': 63}
         self.pieces = []
         self.currently_playing = 'White'
-        self.ai = None
+        self.ai_player = None
+
+    def remove_king(self, color):
+        """Removes the King from a player"""
+
+        for i in range(len(self.board_state)):
+            if self.board_state[i] is not None:
+                if isinstance(self.board_state[i], King) and self.board_state[i].colour == color:
+                    self.board_state[i] = None
+                    break
+
 
     def reset_pieces(self):
         """Reset the board to its starting state"""
@@ -57,7 +78,7 @@ class Model:
         self.board_state[62] = Horse('White', 62, model, False)
         self.board_state[63] = Rook('White', 63, model, False)
         for i in range(8):
-            self.board_state[48 + i] = Pawn('White', 48 + i, model)
+            self.board_state[48 + i] = Pawn('White', 48 + i, model, False)
         self.pieces.clear()
         for _ in range(64):
             if self.board_state[_] is not None:
@@ -82,12 +103,11 @@ class Model:
                 print("Position changed: " +
                       str(moved_piece.position) + " -> " + str(goal_pos))
                 moved_piece.position = goal_pos
-                if type(moved_piece) == Pawn:
-                    if moved_piece.upgrade():
-                        self.board_state[goal_pos] = Queen(
-                            self.currently_playing, goal_pos, model)
+                if isinstance(moved_piece, Pawn) and moved_piece.upgrade():
+                    self.board_state[goal_pos] = Queen(
+                        self.currently_playing, goal_pos, model, False)
 
-                if type(moved_piece) == King and self.check_rochade:
+                if isinstance(moved_piece, King) and self.check_rochade:
                     if goal_pos == 62:
                         self.board_state[61] = self.board_state[63]
                         self.board_state[63] = None
@@ -100,7 +120,7 @@ class Model:
                         self.board_state[6] = self.board_state[7]
                         self.board_state[0] = None
 
-                    if goal_pos == 1 or goal_pos == 2:
+                    if goal_pos in (1, 2):
                         self.board_state[goal_pos + 1] = self.board_state[0]
                         self.board_state[0] = None
 
@@ -110,25 +130,24 @@ class Model:
                     self.pieces.remove(killed_piece)
                 if update:
                     self.view.update_board()
+
                 return move
-            else:
-                print(
-                    "Erg: " + str(self.board_state[start_pos].check_legal_move(goal_pos)))
-                self.view.invalid_input(
-                    'Sorry, this move is not legal. Please try again!')
-                return self.controller.get_movement_choice(self.view.get_movement_choice())
-
-        else:
-            try:
-                print("Color of pieces: " + str(moved_piece.colour))
-            except AttributeError:
-                pass
-            print("Current color: " + str(self.currently_playing))
-            print("pieces: " + str(moved_piece))
-
+            print(
+                "Erg: " + str(self.board_state[start_pos].check_legal_move(goal_pos)))
             self.view.invalid_input(
-                'There is no piece of your color on this space. Please try again!')
+                'Sorry, this move is not legal. Please try again!')
             return self.controller.get_movement_choice(self.view.get_movement_choice())
+
+        try:
+            print("Color of pieces: " + str(moved_piece.colour))
+        except AttributeError:
+            pass
+        print("Current color: " + str(self.currently_playing))
+        print("pieces: " + str(moved_piece))
+
+        self.view.invalid_input(
+            'There is no piece of your color on this space. Please try again!')
+        return self.controller.get_movement_choice(self.view.get_movement_choice())
 
     def check_for_king(self, color=None):
         """Check whether the king of the currently playing team is alive or not """
@@ -137,7 +156,7 @@ class Model:
 
         king_alive = False
         for i in self.pieces:
-            if type(i) == King and i.colour == color:
+            if isinstance(i, King) and i.colour == color:
                 king_alive = True
                 break
         return king_alive
@@ -167,12 +186,17 @@ class Model:
 
         try:
             if not row[0].moved and not row[4].moved and not row[7].moved:
-                if row[1] is None and row[2] is None and row[3] is None or row[5] is None and row[6] is None:
+                if row[1] is None and row[2] is None and row[3] is None\
+                        or row[5] is None and row[6] is None:
                     return True
+            # ToDo: Prüfen, ob return False hier stehen kann
+            return False
         except AttributeError:
             return False
 
     def recalculate_elo(self, victor_id, loser_id):
+        """calculate the elo of a player"""
+
         victor_elo = int(self.database.fetch_general_data(
             'elo', 'Spieler', 'WHERE id = ' + str(victor_id))[0][0])
         loser_elo = int(self.database.fetch_general_data(
