@@ -234,16 +234,6 @@ class Rook(Piece):
         self.symbol = self.set_symbol()
         self.position = position
         self.moved = moved
-        Rook.table = [
-            [0, 0, 0, 5, 5, 0, 0, 0],
-            [-5, 0, 0, 0, 0, 0, 0, -5],
-            [-5, 0, 0, 0, 0, 0, 0, -5],
-            [-5, 0, 0, 0, 0, 0, 0, -5],
-            [-5, 0, 0, 0, 0, 0, 0, -5],
-            [-5, 0, 0, 0, 0, 0, 0, -5],
-            [5, 10, 10, 10, 10, 10, 10, 5],
-            [0, 0, 0, 0, 0, 0, 0, 0]
-        ]
         self.score = 500
 
     def set_symbol(self):
@@ -281,16 +271,6 @@ class Horse(Piece):
         self.symbol = self.set_symbol()
         self.position = position
         self.moved = moved
-        Horse.table = [
-            [-50, -40, -30, -30, -30, -30, -40, -50],
-            [-40, -20, 0, 5, 5, 0, -20, -40],
-            [-30, 5, 10, 15, 15, 10, 5, -30],
-            [-30, 0, 15, 20, 20, 15, 0, -30],
-            [-30, 5, 15, 20, 20, 15, 0, -30],
-            [-30, 0, 10, 15, 15, 10, 0, -30],
-            [-40, -20, 0, 0, 0, 0, -20, -40],
-            [-50, -40, -30, -30, -30, -30, -40, -50]
-        ]
         self.score = 320
 
     def set_symbol(self):
@@ -346,16 +326,6 @@ class Bishop(Piece):
         self.symbol = self.set_symbol()
         self.position = position
         self.moved = moved
-        Bishop.table = [
-            [-20, -10, -10, -10, -10, -10, -10, -20],
-            [-10, 5, 0, 0, 0, 0, 5, -10],
-            [-10, 10, 10, 10, 10, 10, 10, -10],
-            [-10, 0, 10, 10, 10, 10, 0, -10],
-            [-10, 5, 5, 10, 10, 5, 5, -10],
-            [-10, 0, 5, 10, 10, 5, 0, -10],
-            [-10, 0, 0, 0, 0, 0, 0, -10],
-            [-20, -10, -10, -10, -10, -10, -10, -20]
-        ]
         self.score = 330
 
     def set_symbol(self):
@@ -392,16 +362,6 @@ class Pawn(Piece):
         self.symbol = self.set_symbol()
         self.position = position
         self.moved = moved
-        Pawn.table = [
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [5, 10, 10, -20, -20, 10, 10, 5],
-            [5, -5, -10, 0, 0, -10, -5, 5],
-            [0, 0, 0, 20, 20, 0, 0, 0],
-            [5, 5, 10, 25, 25, 10, 5, 5],
-            [10, 10, 20, 30, 30, 20, 10, 10],
-            [50, 50, 50, 50, 50, 50, 50, 50],
-            [0, 0, 0, 0, 0, 0, 0, 0]
-        ]
         self.score = 100
 
     def set_symbol(self):
@@ -471,16 +431,6 @@ class Queen(Piece):
         self.symbol = self.set_symbol()
         self.position = position
         self.moved = moved
-        Queen.table = [
-            [-20, -10, -10, -5, -5, -10, -10, -20],
-            [-10, 0, 5, 0, 0, 0, 0, -10],
-            [-10, 5, 5, 5, 5, 5, 0, -10],
-            [0, 0, 5, 5, 5, 5, 0, -5],
-            [-5, 0, 5, 5, 5, 5, 0, -5],
-            [-10, 0, 5, 5, 5, 5, 0, -10],
-            [-10, 0, 0, 0, 0, 0, 0, -10],
-            [-20, -10, -10, -5, -5, -10, -10, -20]
-        ]
         self.score = 900
 
     def set_symbol(self):

@@ -103,15 +103,15 @@ class App:
                         queue_f.get_nowait()
                     except Empty:
                         break
-                old_content = []
+                old_queue_content = []
             else:
-                old_content = []
+                old_queue_content = []
                 while queue_f.qsize() != 0:
-                    old_content.append(queue_f.get())
+                    old_queue_content.append(queue_f.get())
 
-            old_content.append(content_f)
+            old_queue_content.append(content_f)
 
-            for i in old_content:
+            for i in old_queue_content:
                 queue_f.put(i)
 
             if safe_mode:

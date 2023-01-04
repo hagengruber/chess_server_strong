@@ -208,7 +208,6 @@ class Model:
                 if row[1] is None and row[2] is None and row[3] is None\
                         or row[5] is None and row[6] is None:
                     return True
-            # ToDo: Prüfen, ob return False hier stehen kann
             return False
         except AttributeError:
             return False
@@ -247,7 +246,6 @@ class Model:
         if games[i]['remis'] is not None:
             answer = ""
 
-            # ToDo: Prüfen ob Logik korrekt
             while 'y' not in answer and 'n' not in answer:
 
                 games_new, iterator = self.controller.get_room()
@@ -278,7 +276,8 @@ class Model:
 
                 update_queue = None
                 while update_queue is None:
-                    update_queue = self.controller.get_queue_content(self.controller.games, safe_mode=False)
+                    update_queue = self.controller.get_queue_content(
+                        self.controller.games, safe_mode=False)
 
                 try:
 
@@ -319,7 +318,8 @@ class Model:
                 temp['games'] = games
 
                 while not write_success:
-                    self.controller.write_queue_content(self.controller.games, temp, safe_mode=False)
+                    self.controller.write_queue_content(
+                        self.controller.games, temp, safe_mode=False)
 
                     temp = None
 

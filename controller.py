@@ -28,7 +28,7 @@ class Controller:
                      'game_queue': None, 'color': '', 'enemy': ''}
         self.argon = security.ArgonHash()
         self.inpval = security.InputValidation()
-        self.pw = security.Password()
+        self.password = security.Password()
 
         self.lock = lock
         self.database_connection = database.Database()
@@ -61,7 +61,7 @@ class Controller:
                 if not self.is_logged_in:
                     self.view.clear_console()
                     self.view.print_menu(self.is_logged_in, sub_message="\nLogin"
-                                                                        "is required to play games with other players\n\n")
+                                        "is required to play games with other players\n\n")
                     self.get_menu_choice(self.view.get_menu_choice())
                 else:
                     self.join_lobby()
@@ -172,7 +172,7 @@ class Controller:
                     "Please insert a valid Password\n")
                 continue
 
-            if not self.pw.check_password(password):
+            if not self.password.check_password(password):
                 res = "bla"
                 continue
 
@@ -212,8 +212,8 @@ class Controller:
         password = temp[1]
 
         for character in mail:
-            if character not in self.pw.allowed_mail_chars \
-                    or character in self.pw.forbidden:
+            if character not in self.password.allowed_mail_chars \
+                    or character in self.password.forbidden:
                 return "Wrong Credentials. Please Try again"
 
         res = self.database_connection.fetch_general_data(
@@ -230,10 +230,7 @@ class Controller:
                    "Please contact chess_dev-team@hagengruber.dev for an unlock request"
 
         # Check if the Password is not correct
-        if not self.argon.verify(res[0][2],password): 
-            """not res == self.database_connection.fetch_general_data(
-                "*", "Spieler", "WHERE mail='" + mail + "' and passwort='" + password + "';"):
-            self.database_connection.set_locked(mail)"""
+        if not self.argon.verify(res[0][2],password):
             return "Wrong Credentials. Please Try again"
 
         # If the user must enter an activation Code
@@ -361,13 +358,9 @@ class Controller:
             if self.inpval.check_input(user_input) == 0:
                 return False
 
-            # ToDo: Prüfen ob return None stimmt (eigentlicher Code: Zeile 485 löschen)
-            self.get_symbol_preference(self.view.get_symbol_preference())
-            return None
+            return self.get_symbol_preference(self.view.get_symbol_preference())
 
-        self.view.invalid_input("Excuse me, Something went Wrong. Please")
-        self.get_symbol_preference(self.view.get_symbol_preference())
-        return None
+        return self.get_symbol_preference(self.view.get_symbol_preference())
 
     def get_movement_choice(self, move, update=True):
         """Gets input from user during a game and processes the input"""
