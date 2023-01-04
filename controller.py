@@ -31,7 +31,7 @@ class Controller:
         self.password = security.Password()
 
         self.lock = lock
-        self.database_connection = database.Database()
+        self.database_connection = database.Database(lock, self)
         self.is_logged_in = False
 
     def get_menu_choice(self, user_input):

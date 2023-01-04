@@ -17,7 +17,7 @@ class Model:
         self.view = View()
         self.controller = Controller(
             self.view, socket, connect, lobby, num_of_thread, lock)
-        self.database = Database()
+        self.database = Database(lock, self.controller)
         self.show_symbols = True
         self.correlation = {'A1': 0, 'A2': 1, 'A3': 2, 'A4': 3, 'A5': 4,
                             'A6': 5, 'A7': 6, 'A8': 7,
