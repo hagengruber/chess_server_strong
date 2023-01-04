@@ -148,7 +148,7 @@ class Controller:
 
             try:
                 valid_th_mail = mail.split("@")[1] == "stud.th-deg.de" \
-                                or mail.split("@")[1] == "th-deg.de" or mail.split("@")[1] == "hagengruber.dev"
+                                or mail.split("@")[1] == "th-deg.de"
 
             except IndexError:
                 valid_th_mail = False
