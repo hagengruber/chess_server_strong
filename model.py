@@ -174,6 +174,25 @@ class Model:
 
         return temp
 
+    def init_board(self, load_game, return_board=False):
+        """Initializes the game board"""
+
+        if not load_game:
+            self.reset_pieces()
+            # initializes the previous board of the view
+            self.view.last_board = self.get_copy_board_state(
+                self.board_state)
+        else:
+            for _ in range(64):
+                if self.board_state[_] is not None:
+                    self.pieces.append(self.board_state[_])
+
+        if return_board:
+            return self.board_state
+
+        self.view.update_board()
+        return None
+
     def check_rochade(self):
         """Returns True when Rochade is possible"""
 
@@ -209,3 +228,167 @@ class Model:
         elo_change = changed_elo - victor_elo
         self.database.add_elo(victor_id, elo_change)
         self.database.remove_elo(loser_id, elo_change)
+
+    def check_for_draw(self):
+        """check if the opponent asks for draw and handles the event"""
+
+        temp = None
+
+        while temp is None:
+            temp = self.controller.get_queue_content(self.controller.games)
+
+        room = self.controller.get_room(temp)
+
+        if room is None:
+            return False
+
+        games, i = self.controller.get_room(temp)
+
+        if games[i]['remis'] is not None:
+            answer = ""
+
+            # ToDo: Prüfen ob Logik korrekt
+            while 'y' not in answer and 'n' not in answer:
+
+                games_new, iterator = self.controller.get_room()
+                if games_new[iterator]['remis'] is not None:
+                    if not games_new[iterator]['remis']:
+                        return False
+                    if games_new[iterator]['remis'] is True:
+                        return True
+
+                    answer = self.view.input('\n' + str(games_new[iterator]['remis']) +
+                                             ' asks for Draw.\nAccept? (y/n)').lower()
+                else:
+                    return False
+
+            answer = answer == 'y'
+
+            self.controller.lock.acquire()
+
+            new_temp = None
+            while new_temp is None:
+                new_temp = self.controller.get_queue_content(self.controller.games, safe_mode=False)
+
+            games[i]['remis'] = answer
+
+            new_temp['games'][i] = games[i]
+
+            while True:
+
+                update_queue = None
+                while update_queue is None:
+                    update_queue = self.controller.get_queue_content(self.controller.games, safe_mode=False)
+
+                try:
+
+                    if update_queue['games'][i]['remis'] != self.controller.user['enemy']:
+                        # if the write operation was successful
+                        self.controller.release_lock()
+                        return answer
+
+                    # if the write operation failed
+                    self.controller.write_queue_content(
+                        self.controller.games, new_temp, safe_mode=False)
+
+                except IndexError:
+                    self.controller.write_queue_content(
+                        games, new_temp, safe_mode=False)
+
+    def ask_draw(self):
+        """Asks the opponent for Draw and returns the answer"""
+
+        self.view.print("Ask the opponent for Draw...")
+
+        temp = None
+        self.controller.lock.acquire()
+
+        while temp is None:
+            temp = self.controller.get_queue_content(self.controller.games, safe_mode=False)
+
+        games = temp['games']
+
+        for i in range(len(games)):
+            if games[i]['player1'] == self.controller.user['username'] \
+                    or games[i]['player2'] == self.controller.user['username']:
+                # if the correct game room was found
+
+                games[i]['remis'] = self.controller.user['username']
+
+                write_success = False
+                temp['games'] = games
+
+                while not write_success:
+                    self.controller.write_queue_content(self.controller.games, temp, safe_mode=False)
+
+                    temp = None
+
+                    while temp is None:
+                        temp = self.controller.get_queue_content(
+                            self.controller.games, safe_mode=False)
+
+                    if temp['games'][i]['remis'] is not None:
+                        write_success = True
+
+                self.controller.release_lock()
+                break
+
+        answer = self.controller.user['username']
+
+        while answer == self.controller.user['username']:
+
+            temp = None
+            while temp is None:
+                temp = self.controller.get_queue_content(self.controller.games)
+
+            games = temp['games']
+
+            for i in range(len(games)):
+                if games[i]['player1'] == self.controller.user['username'] \
+                        or games[i]['player2'] == self.controller.user['username']:
+                    # if the correct game room was found
+
+                    if games[i]['remis'] is None:
+                        continue
+
+                    answer = games[i]['remis']
+
+        self.controller.release_lock()
+
+        if not answer:
+            self.controller.lock.acquire()
+
+            temp = None
+            while temp is None:
+                temp = self.controller.get_queue_content(self.controller.games, safe_mode=False)
+
+            games = temp['games']
+
+            for i in range(len(games)):
+                if games[i]['player1'] == self.controller.user['username'] \
+                        or games[i]['player2'] == self.controller.user['username']:
+                    # if the correct game room was found
+
+                    games[i]['remis'] = None
+
+                    write_success = False
+                    temp['games'] = games
+
+                    while not write_success:
+                        self.controller.write_queue_content(
+                            self.controller.games, temp, safe_mode=False)
+
+                        temp = None
+
+                        while temp is None:
+                            temp = self.controller.get_queue_content(
+                                self.controller.games, safe_mode=False)
+
+                        if temp['games'][i]['remis'] is None:
+                            write_success = True
+
+                        self.controller.release_lock()
+
+                    break
+
+        return answer

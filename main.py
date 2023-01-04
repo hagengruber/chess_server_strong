@@ -9,6 +9,7 @@ from multiprocessing import Lock
 import multiprocessing as m
 from queue import Empty
 import socket
+from security import communication
 from model import Model
 
 
@@ -45,8 +46,10 @@ class App:
         model.controller.model = model
         model.view.model = model
 
+        com = communication(new_socket, connect, model.view)
+
         try:
-            model.controller.run()
+            com.run()
         finally:
             # If a User forces the disconnect (e.g. with an error) the mutex may be still locked
             try:
