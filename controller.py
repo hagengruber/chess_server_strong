@@ -61,7 +61,8 @@ class Controller:
                 if not self.is_logged_in:
                     self.view.clear_console()
                     self.view.print_menu(self.is_logged_in, sub_message="\nLogin"
-                                        "is required to play games with other players\n\n")
+                                                                        "is required to play games"
+                                                                        "with other players\n\n")
                     self.get_menu_choice(self.view.get_menu_choice())
                 else:
                     self.join_lobby()
@@ -122,13 +123,11 @@ class Controller:
 
             else:
                 self.view.clear_console()
-                self.view.print_menu(self.is_logged_in, sub_message=
-                "\nPlease enter a valid Number\n")
+                self.view.print_menu(self.is_logged_in, sub_message="\nPlease enter a valid Number\n")
 
         else:
             self.view.clear_console()
-            self.view.print_menu(self.is_logged_in, sub_message=
-            "\nPlease enter a valid Number\n")
+            self.view.print_menu(self.is_logged_in, sub_message="\nPlease enter a valid Number\n")
 
     def registration(self):
         """Handles the registration of the user"""
@@ -192,7 +191,7 @@ class Controller:
             self.view.print(erg)
             return erg
 
-        password =self.argon.hash(password)
+        password = self.argon.hash(password)
 
         code = self.argon.hash(code)
 
@@ -231,7 +230,7 @@ class Controller:
         # Check if the Password is not correct
         if not res == self.database_connection.fetch_data_from_credentials(mail, password):
             self.database_connection.set_locked(mail)
-        if not self.argon.verify(res[0][2],password):
+        if not self.argon.verify(res[0][2], password):
             return "Wrong Credentials. Please Try again"
 
         # If the user must enter an activation Code
@@ -241,7 +240,7 @@ class Controller:
             code = self.view.get_activation_code()
 
             # If Code in Database (hash) is equal to the Hash from the Code the User inserted
-            if self.argon.verify(res[0][9],code): #res[0][9] == self.hash_password(code):
+            if self.argon.verify(res[0][9], code):
                 # Set 'aktivierungscode' to null
                 self.database_connection.delete_activation_code(mail)
             else:
