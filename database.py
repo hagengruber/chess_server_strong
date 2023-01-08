@@ -7,18 +7,22 @@ import sqlite3
 class Database:
     """Class that handles everything for the module"""
 
-    def __init__(self):
+    def __init__(self, lock, controller):
         self.con = None
         self.cur = None
+        self.lock = lock
+        self.controller = controller
 
     def open_connection(self):
         """Creates a new connection and a cursor"""
         self.con = sqlite3.connect("Chess_Online_DB.db")
         self.cur = self.con.cursor()
+        self.lock.acquire()
 
     def close_connection(self):
         """Closes the connection and saves changes"""
         self.con.close()
+        self.controller.release_lock()
 
     def add_player(self, mail, password, username, code):
         """Adds a player to the 'Spieler' table"""

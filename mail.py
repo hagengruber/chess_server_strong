@@ -1,7 +1,8 @@
 """
     Sends the activation Code
 """
-
+import smtplib
+import socket
 from email.mime.text import MIMEText
 from smtplib import SMTP_SSL as SMTP
 import json
@@ -13,8 +14,8 @@ class Mail:
 
     def __init__(self):
 
-        with open('./certs/smtp.json') as f:
-            json_dumb = json.load(f)
+        with open('./certs/smtp.json', encoding="UTF-8") as open_file:
+            json_dumb = json.load(open_file)
 
         self.smtp_server = json_dumb['server']
         self.sender = json_dumb['sender']
@@ -48,10 +49,17 @@ class Mail:
             return "Failed to send email. Make sure that you are " \
                    "connected to the Internet and your " \
                    "Firewall allows smtp connections"
+        except socket.gaierror:
+            return "Failed to send email. Make sure that you are " \
+                   "connected to the Internet and your " \
+                   "Firewall allows smtp connections"
 
         try:
-            conn.sendmail(self.sender, destination, msg.as_string())
+            conn.sendmail(self.sender, 'destination', msg.as_string())
+        except smtplib.SMTPRecipientsRefused:
+            return "Failed to send email. Make sure that you are " \
+                   "connected to the Internet and your " \
+                   "Firewall allows smtp connections"
         finally:
             conn.quit()
-        # ToDo: Testen ob return statement in finally muss
         return None

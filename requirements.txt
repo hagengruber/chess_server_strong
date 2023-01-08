@@ -1,3 +1,5 @@
-tqdm==4.64.1
-pyfiglet~=0.8.post1
-colorama~=0.4.5
+tqdm
+pyfiglet
+colorama
+pytest
+argon2-cffi
