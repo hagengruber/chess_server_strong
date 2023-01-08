@@ -8,8 +8,10 @@ import ssl
 from argon2 import PasswordHasher
 import argon2.exceptions
 
+
 class Password:
     """Class that handles password checks"""
+
     def __init__(self):
         self.upper = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
                       'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
@@ -20,6 +22,7 @@ class Password:
         self.allowed_mail_chars = self.upper + self.lower + self.numbers + ['@', '-', '.']
         self.forbidden = ['"', "--", "'", ";"]
         self.length = {'min': 10, 'max': 20}
+
     def check_password(self, password):
         """Checks the password pattern"""
         password = str(password)
@@ -49,16 +52,18 @@ class Password:
 
     def check_password_guideline(self, characters, password):
         """returns bool whether the password complies with the policy"""
-        if characters['upper'] >= 2 and characters['lower'] >= 2\
+        if characters['upper'] >= 2 and characters['lower'] >= 2 \
                 and characters['nums'] >= 2 and characters['special'] >= 2:
             return self.length['min'] <= len(password) <= self.length['max']
 
         return False
 
+
 class ArgonHash:
     """Handles everything with Hashes"""
+
     def __init__(self):
-        self.argon = PasswordHasher(time_cost=16, memory_cost=2**15,
+        self.argon = PasswordHasher(time_cost=16, memory_cost=2 ** 15,
                                     parallelism=2, hash_len=32, salt_len=16)
 
     def hash(self, user_input):
@@ -72,8 +77,10 @@ class ArgonHash:
         except argon2.exceptions.VerifyMismatchError:
             return False
 
+
 class InputValidation:
     """Handles everything with Input Validation"""
+
     def __init__(self):
         self.min_len = 13
 
@@ -104,8 +111,10 @@ class InputValidation:
         except json.decoder.JSONDecodeError:
             return False
 
+
 class Communication:
     """handles everything with communication"""
+
     def __init__(self, socket, connect, view):
         self.socket = socket
         self.connect = connect
