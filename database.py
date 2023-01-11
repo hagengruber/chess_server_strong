@@ -56,15 +56,18 @@ class Database:
 
         self.open_connection()
 
+        user_id = self.get_id(username, connection=True)
+
         res = self.cur.execute(
-            """SELECT saveid FROM Spieler WHERE id = '%s'""" % self.get_id(username))
+            """SELECT saveid FROM Spieler WHERE id = '%s'""" % user_id)
 
         save_id = res.fetchall()[0][0]
 
-        self.change_save_id(self.get_id(username), 0, end_connection=False)
+        self.change_save_id(user_id, 0, end_connection=False)
 
         self.cur.execute(
             """DELETE FROM Speicherstände WHERE id='%s'""" % save_id)
+
         self.con.commit()
         self.close_connection()
 
@@ -164,13 +167,17 @@ class Database:
         self.close_connection()
         return data
 
-    def get_id(self, username):
+    def get_id(self, username, connection=False):
         """Gets the id from Username"""
-        self.open_connection()
+        if not connection:
+            self.open_connection()
+
         res = self.cur.execute("""SELECT id
                                   FROM Spieler WHERE nutzername = '%s'""" % username)
         data = res.fetchall()
-        self.close_connection()
+
+        if not connection:
+            self.close_connection()
 
         data = int(data[0][0])
 

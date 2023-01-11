@@ -54,8 +54,9 @@ class Mail:
                    "connected to the Internet and your " \
                    "Firewall allows smtp connections"
 
+        conn.sendmail(self.sender, destination, msg.as_string())
         try:
-            conn.sendmail(self.sender, 'destination', msg.as_string())
+            conn.sendmail(self.sender, destination, msg.as_string())
         except smtplib.SMTPRecipientsRefused:
             return "Failed to send email. Make sure that you are " \
                    "connected to the Internet and your " \

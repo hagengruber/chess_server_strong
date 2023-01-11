@@ -68,7 +68,8 @@ class ArgonHash:
 
     def hash(self, user_input):
         """Returns the hash from the user input"""
-        return self.argon.hash(user_input)
+        # user input cast to string, because the activation code needs to be hashed to
+        return self.argon.hash(str(user_input))
 
     def verify(self, user_hash, user_input):
         """Returns bool if the user input is equal from the Hash in database"""
