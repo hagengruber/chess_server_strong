@@ -5,33 +5,31 @@
 from queue import Empty
 import sys
 import re
-import database
-from mail import Mail
-from pieces import Pawn, Rook, Horse, Bishop, Queen, King
-import security
-from algorithm import AI
+from app.database import Database
+from app.mail import Mail
+from app.pieces import Pawn, Rook, Horse, Bishop, Queen, King
+from app.security import Password, ArgonHash, InputValidation
+from app.algorithm import AI
 
 
 class Controller:
     """Class that handles everything for the module"""
 
-    def __init__(self, view, socket, connect, games, num_of_thread, lock):
+    def __init__(self, view, socket, connect, games, lock):
         self.socket = socket
         self.connect = connect
         self.model = None
         self.view = view
-        # self.ai_player = None
         self.user_ai = None
         self.load_game = False
         self.games = games
-        self.user = {'username': None, 'num_of_thread': num_of_thread,
-                     'game_queue': None, 'color': '', 'enemy': ''}
-        self.argon = security.ArgonHash()
-        self.inpval = security.InputValidation()
-        self.password = security.Password()
+        self.user = {'username': None, 'game_queue': None, 'color': '', 'enemy': ''}
+        self.argon = ArgonHash()
+        self.inpval = InputValidation()
+        self.password = Password()
 
         self.lock = lock
-        self.database_connection = database.Database(lock, self)
+        self.database_connection = Database(lock, self)
         self.is_logged_in = False
 
     def get_menu_choice(self, user_input):

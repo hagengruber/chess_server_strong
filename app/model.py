@@ -2,21 +2,21 @@
     Module for managing and manipulating data
 """
 
-from pieces import Rook, Horse, Bishop, Pawn, King, Queen
-from controller import Controller
-from database import Database
-from view import View
+from app.pieces import Rook, Horse, Bishop, Pawn, King, Queen
+from app.controller import Controller
+from app.database import Database
+from app.view import View
 
 
 class Model:
     """Class that handles everything for the module"""
 
-    def __init__(self, socket, connect, lobby, num_of_thread, lock):
+    def __init__(self, socket, connect, lobby, lock):
 
         self.board_state = list(None for _ in range(64))
         self.view = View()
         self.controller = Controller(
-            self.view, socket, connect, lobby, num_of_thread, lock)
+            self.view, socket, connect, lobby, lock)
         self.database = Database(lock, self.controller)
         self.show_symbols = True
         self.correlation = {'A1': 0, 'A2': 1, 'A3': 2, 'A4': 3, 'A5': 4,

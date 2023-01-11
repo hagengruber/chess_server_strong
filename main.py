@@ -9,13 +9,13 @@ from multiprocessing import Lock
 import multiprocessing as m
 from queue import Empty
 import socket
-from security import Communication
-from model import Model
+from app.security import Communication
+from app.model import Model
 
 
 class App:
 
-    """Main function"""
+    """Main Class"""
 
     def __init__(self):
         self.ip_address = socket.gethostbyname(socket.gethostname())
@@ -26,7 +26,6 @@ class App:
         self.server_key = './certs/server.key'
         self.client_certs = './certs/client.crt'
 
-        self.threads = -1
         self.lobby = Queue()
         self.lobby.put({'lobby': [], 'games': []})
 
@@ -39,10 +38,10 @@ class App:
         self.lock = Lock()
 
     @staticmethod
-    def connect_and_run(new_socket, connect, lobby, threads, lock):
+    def connect_and_run(new_socket, connect, lobby, lock):
         """Handles the Game for every User"""
 
-        model = Model(new_socket, connect, lobby, threads, lock)
+        model = Model(new_socket, connect, lobby, lock)
         model.controller.model = model
         model.view.model = model
 
@@ -73,9 +72,8 @@ class App:
 
                 while self.connect.qsize() != 0:
                     self.connect.get()
-                    self.threads += 1
                     m.Process(target=App.listen, args=(new_socket, self.connect,
-                                                       self.lobby, self.threads, self.lock)).start()
+                                                       self.lobby, self.lock)).start()
 
     @staticmethod
     def check_launch_lobby(lock, game):
@@ -178,11 +176,11 @@ class App:
             release_lock(lock)
 
     @staticmethod
-    def listen(new_socket, connect, lobby, threads, lock):
+    def listen(new_socket, connect, lobby, lock):
         """Waits for a connection from a Client and starts the game loop"""
 
         m.Process(target=App.connect_and_run,
-                  args=(new_socket, connect, lobby, threads, lock)).start()
+                  args=(new_socket, connect, lobby, lock)).start()
 
 
 if __name__ == "__main__":
