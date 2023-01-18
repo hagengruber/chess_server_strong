@@ -1,13 +1,19 @@
 """
     Module that provides a connection to the ChessServer
 """
-import socket
-import select
-import threading
-import sys
-import os
+from socket import gethostbyname
+from socket import gethostname
+from socket import socket
+from socket import AF_INET
+from socket import SOCK_STREAM
+from select import select
+from threading import Thread
+from sys import exit
+from os import name
+from os import system
 from getpass import getpass
-import ssl
+from ssl import create_default_context
+from ssl import Purpose
 
 
 class Client:
@@ -15,7 +21,7 @@ class Client:
     """Class that provides a connection to the ChessServer"""
 
     def __init__(self):
-        self.host = socket.gethostbyname(socket.gethostname())
+        self.host = gethostbyname(gethostname())
         self.port = 8080
         self.allowed_to_write = False
         self.server_cert = './certs/server.crt'
@@ -46,10 +52,10 @@ class Client:
 
         try:
 
-            context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=self.server_cert)
+            context = create_default_context(Purpose.SERVER_AUTH, cafile=self.server_cert)
             context.load_cert_chain(certfile=self.client_cert, keyfile=self.client_key)
 
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+            with socket(AF_INET, SOCK_STREAM) as server_socket:
 
                 self.conn = context.wrap_socket(server_socket, server_side=False,
                                                 server_hostname='Chess')
@@ -58,15 +64,15 @@ class Client:
                     self.conn.connect((self.host, self.port))
                 except ConnectionRefusedError:
                     print("Server refused connection. Please check the Server status")
-                    sys.exit()
+                    exit()
 
                 stop_threads = False
 
-                threading.Thread(target=Client.write, args=(self, lambda: stop_threads,)).start()
+                Thread(target=Client.write, args=(self, lambda: stop_threads,)).start()
 
                 while True:
 
-                    ready = select.select([self.conn], [], [], 1)
+                    ready = select([self.conn], [], [], 1)
                     self.allowed_to_write = False
 
                     if ready[0]:
@@ -78,10 +84,10 @@ class Client:
                             print(i)
 
                         if message == '\033[H\033[J':
-                            if os.name == "posix":
-                                os.system("clear")
+                            if name == "posix":
+                                system("clear")
                             else:
-                                os.system("cls")
+                                system("cls")
 
                             self.allowed_to_write = True
 
@@ -91,7 +97,7 @@ class Client:
 
                         elif message == 'Thanks for playing':
                             stop_threads = True
-                            sys.exit()
+                            exit()
 
                         else:
                             self.allowed_to_write = True
@@ -99,7 +105,7 @@ class Client:
         except ConnectionResetError:
             print("Connection to Server lost")
             stop_threads = True
-            sys.exit()
+            exit()
 
 
 if __name__ == "__main__":

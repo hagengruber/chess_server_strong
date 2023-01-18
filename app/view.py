@@ -2,7 +2,7 @@
     Module for displaying the current state of the game to the user
 """
 
-import pyfiglet
+from pyfiglet import figlet_format
 from colorama import init as colorama_init
 from colorama import Fore
 from colorama import Style
@@ -97,7 +97,7 @@ class View:
     def print_menu(self, login, sub_message=None):
         """Display the starting menu and tell 'model' to ask the user what he wants to do"""
 
-        message = pyfiglet.figlet_format("Chess Online")
+        message = figlet_format("Chess Online")
         self.socket.sendall(message.encode())
 
         message = '\n\n-Enter a move by giving the coordinates of the ' \

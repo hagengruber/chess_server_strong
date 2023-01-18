@@ -1,11 +1,11 @@
 """
     Sends the activation Code
 """
-import smtplib
-import socket
+from smtplib import SMTPRecipientsRefused
+from socket import gaierror
 from email.mime.text import MIMEText
 from smtplib import SMTP_SSL as SMTP
-import json
+from json import load
 from os import urandom
 
 
@@ -15,7 +15,7 @@ class Mail:
     def __init__(self):
 
         with open('./certs/smtp.json', encoding="UTF-8") as open_file:
-            json_dumb = json.load(open_file)
+            json_dumb = load(open_file)
 
         self.smtp_server = json_dumb['server']
         self.sender = json_dumb['sender']
@@ -49,7 +49,7 @@ class Mail:
             return "Failed to send email. Make sure that you are " \
                    "connected to the Internet and your " \
                    "Firewall allows smtp connections"
-        except socket.gaierror:
+        except gaierror:
             return "Failed to send email. Make sure that you are " \
                    "connected to the Internet and your " \
                    "Firewall allows smtp connections"
@@ -57,7 +57,7 @@ class Mail:
         conn.sendmail(self.sender, destination, msg.as_string())
         try:
             conn.sendmail(self.sender, destination, msg.as_string())
-        except smtplib.SMTPRecipientsRefused:
+        except SMTPRecipientsRefused:
             return "Failed to send email. Make sure that you are " \
                    "connected to the Internet and your " \
                    "Firewall allows smtp connections"

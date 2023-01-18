@@ -3,8 +3,8 @@
 """
 
 from queue import Empty
-import sys
-import re
+from sys import exit
+from re import match
 from app.database import Database
 from app.mail import Mail
 from app.pieces import Pawn, Rook, Horse, Bishop, Queen, King
@@ -117,7 +117,7 @@ class Controller:
             elif user_input == 7:
                 # exit
                 self.view.print("Thanks for playing")
-                sys.exit()
+                exit()
 
             else:
                 self.view.clear_console()
@@ -366,7 +366,7 @@ class Controller:
 
         if self.inpval.check_input_length(move):
 
-            if re.match('^--', move):
+            if match('^--', move):
                 if move[2:] == "STATS":
                     pers = self.database_connection.fetch_public_userdata(
                         14)  # eid where nutzername = enemy
@@ -409,7 +409,7 @@ class Controller:
                     self.view.clear_console()
                     self.view.print_menu(True)
                     self.get_menu_choice(self.view.get_menu_choice())
-                    sys.exit()
+                    exit()
 
                 elif move[2:] == "HELP":
                     self.view.get_help()
@@ -418,7 +418,7 @@ class Controller:
                     self.view.invalid_input('Please try again!')
                     return self.get_movement_choice(self.view.get_movement_choice())
 
-            elif re.match('^[A-H][0-8][A-H][0-8]', move):
+            elif match('^[A-H][0-8][A-H][0-8]', move):
 
                 start_pos = move[:2]
                 goal_pos = move[-2:]
@@ -598,7 +598,7 @@ class Controller:
                             self.view.clear_console()
                             self.view.print_menu(True)
                             self.get_menu_choice(self.view.get_menu_choice())
-                            sys.exit()
+                            exit()
 
                         self.model.currently_playing = self.user['color']
 
@@ -670,7 +670,7 @@ class Controller:
                             self.view.clear_console()
                             self.view.print_menu(True)
                             self.get_menu_choice(self.view.get_menu_choice())
-                            sys.exit()
+                            exit()
 
                     break
 
@@ -717,14 +717,14 @@ class Controller:
                     self.view.clear_console()
                     self.view.print_menu(True)
                     self.get_menu_choice(self.view.get_menu_choice())
-                    sys.exit()
+                    exit()
 
                 else:
 
                     self.view.clear_console()
                     self.view.print_menu(True)
                     self.get_menu_choice(self.view.get_menu_choice())
-                    sys.exit()
+                    exit()
 
     def save(self):
         """Saves the current state to a JSON-File"""

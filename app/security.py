@@ -2,11 +2,11 @@
     Module for managing security
 """
 
-import json
-import re
-import ssl
+from json import loads, decoder
+from re import match
+from ssl import CERT_REQUIRED, Purpose, create_default_context
 from argon2 import PasswordHasher
-import argon2.exceptions
+from argon2.exceptions import VerifyMismatchError
 
 
 class Password:
@@ -75,7 +75,7 @@ class ArgonHash:
         """Returns bool if the user input is equal from the Hash in database"""
         try:
             return self.argon.verify(user_hash, user_input)
-        except argon2.exceptions.VerifyMismatchError:
+        except VerifyMismatchError:
             return False
 
 
@@ -94,10 +94,10 @@ class InputValidation:
         """check if the user input is y or n"""
         user_input = user_input.upper()
 
-        if re.match('^Y', user_input) or re.match('YES', user_input):
+        if match('^Y', user_input) or match('YES', user_input):
             return 1
 
-        if re.match('^N', user_input) or re.match('NO', user_input):
+        if match('^N', user_input) or match('NO', user_input):
             return 0
 
         return 2
@@ -108,8 +108,8 @@ class InputValidation:
         try:
             json_string = json_string.replace('False', 'false').replace(
                 'True', 'true').replace('None', 'null')
-            return json.loads(json_string)
-        except json.decoder.JSONDecodeError:
+            return loads(json_string)
+        except decoder.JSONDecodeError:
             return False
 
 
@@ -124,8 +124,8 @@ class Communication:
     def run(self):
         """creates a connection to the Client"""
 
-        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-        context.verify_mode = ssl.CERT_REQUIRED
+        context = create_default_context(Purpose.CLIENT_AUTH)
+        context.verify_mode = CERT_REQUIRED
         context.load_cert_chain(certfile='./certs/server.crt', keyfile='./certs/server.key')
         context.load_verify_locations(cafile='./certs/client.crt')
 

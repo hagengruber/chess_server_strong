@@ -1,7 +1,7 @@
 """
     Module that manages operations on the database
 """
-import sqlite3
+from sqlite3 import connect
 
 
 class Database:
@@ -15,7 +15,7 @@ class Database:
 
     def open_connection(self):
         """Creates a new connection and a cursor"""
-        self.con = sqlite3.connect("./app/Chess_Online_DB.db")
+        self.con = connect("./app/Chess_Online_DB.db")
         self.cur = self.con.cursor()
         self.lock.acquire()
 

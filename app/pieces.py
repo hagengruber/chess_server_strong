@@ -2,7 +2,7 @@
     Module that contains the classes for all the pieces of chess
 """
 from abc import ABCMeta, abstractmethod
-import math
+from math import floor
 
 
 class Piece(metaclass=ABCMeta):
@@ -51,7 +51,7 @@ class Piece(metaclass=ABCMeta):
         """Returns a list of all free spaces north, east, west and south of a given space"""
         allowed = []
 
-        main_row = math.floor(self.position / 8)
+        main_row = floor(self.position / 8)
         main_column = self.position - (main_row * 7) - main_row
 
         space_to_check = self.position - 8
@@ -86,7 +86,7 @@ class Piece(metaclass=ABCMeta):
             if main_column == 0 or column == 0:
                 break
 
-            row = math.floor(space_to_check / 8)
+            row = floor(space_to_check / 8)
             column = space_to_check - (row * 7) - row
 
             if not self.check_occupied_friendly(space_to_check, state):
@@ -107,7 +107,7 @@ class Piece(metaclass=ABCMeta):
             if main_column == 7 or column == 7:
                 break
 
-            row = math.floor(space_to_check / 8)
+            row = floor(space_to_check / 8)
             column = space_to_check - (row * 7) - row
 
             if not self.check_occupied_friendly(space_to_check, state):
@@ -127,7 +127,7 @@ class Piece(metaclass=ABCMeta):
         """
         allowed = []
 
-        main_row = math.floor(self.position / 8)
+        main_row = floor(self.position / 8)
         main_column = self.position - (main_row * 7) - main_row
 
         space_to_check = self.position - 9
@@ -137,7 +137,7 @@ class Piece(metaclass=ABCMeta):
 
             old_row = row
             old_column = column
-            row = math.floor(space_to_check / 8)
+            row = floor(space_to_check / 8)
             column = space_to_check - (row * 7) - row
 
             if row < old_row and column < old_column:
@@ -160,7 +160,7 @@ class Piece(metaclass=ABCMeta):
 
             old_row = row
             old_column = column
-            row = math.floor(space_to_check / 8)
+            row = floor(space_to_check / 8)
             column = space_to_check - (row * 7) - row
 
             if row > old_row and column > old_column:
@@ -183,7 +183,7 @@ class Piece(metaclass=ABCMeta):
 
             old_row = row
             old_column = column
-            row = math.floor(space_to_check / 8)
+            row = floor(space_to_check / 8)
             column = space_to_check - (row * 7) - row
 
             if row < old_row and column > old_column:
@@ -206,7 +206,7 @@ class Piece(metaclass=ABCMeta):
 
             old_row = row
             old_column = column
-            row = math.floor(space_to_check / 8)
+            row = floor(space_to_check / 8)
             column = space_to_check - (row * 7) - row
 
             if row > old_row and column < old_column:
@@ -291,7 +291,7 @@ class Horse(Piece):
         if state == "":
             state = self.model.board_state
 
-        row = math.floor(self.position / 8)
+        row = floor(self.position / 8)
         column = self.position - (row * 7) - row
 
         if not self.check_occupied_friendly(self.position - 17, state) and row >= 2 and column >= 1:
@@ -382,7 +382,7 @@ class Pawn(Piece):
         if state == "":
             state = self.model.board_state
 
-        row = math.floor(self.position / 8)
+        row = floor(self.position / 8)
         column = self.position - (row * 7) - row
 
         if self.colour == 'White':

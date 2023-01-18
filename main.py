@@ -6,19 +6,22 @@
 
 from multiprocessing import Queue
 from multiprocessing import Lock
-import multiprocessing as m
+from multiprocessing import Process
 from queue import Empty
-import socket
+from socket import gethostbyname
+from socket import gethostname
+from socket import socket
+from socket import AF_INET
+from socket import SOCK_STREAM
 from app.security import Communication
 from app.model import Model
 
 
 class App:
-
     """Main Class"""
 
     def __init__(self):
-        self.ip_address = socket.gethostbyname(socket.gethostname())
+        self.ip_address = gethostbyname(gethostname())
         self.host = self.ip_address
         self.port = 8080
 
@@ -59,10 +62,9 @@ class App:
     def run(self):
         """Handles connection requests"""
 
-        m.Process(target=App.check_launch_lobby,
-                  args=(self.lock, self.lobby,)).start()
+        Process(target=App.check_launch_lobby, args=(self.lock, self.lobby,)).start()
 
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as new_socket:
+        with socket(AF_INET, SOCK_STREAM) as new_socket:
             new_socket.bind((self.host, self.port))
             print("Server is listening on " + str(self.ip_address) +
                   " with Port " + str(self.port))
@@ -72,8 +74,8 @@ class App:
 
                 while self.connect.qsize() != 0:
                     self.connect.get()
-                    m.Process(target=App.listen, args=(new_socket, self.connect,
-                                                       self.lobby, self.lock)).start()
+                    Process(target=App.listen, args=(new_socket, self.connect,
+                                                     self.lobby, self.lock)).start()
 
     @staticmethod
     def check_launch_lobby(lock, game):
@@ -150,7 +152,6 @@ class App:
             lock.acquire()
 
             if len(temp['lobby']) >= 2:
-
                 games = temp['games']
                 lobby = temp['lobby']
 
@@ -179,8 +180,8 @@ class App:
     def listen(new_socket, connect, lobby, lock):
         """Waits for a connection from a Client and starts the game loop"""
 
-        m.Process(target=App.connect_and_run,
-                  args=(new_socket, connect, lobby, lock)).start()
+        Process(target=App.connect_and_run,
+                args=(new_socket, connect, lobby, lock)).start()
 
 
 if __name__ == "__main__":

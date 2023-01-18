@@ -3,8 +3,8 @@
 """
 from multiprocessing import cpu_count
 from queue import Queue
-import threading as m
-import math
+from threading import Thread
+from math import floor, inf
 from tqdm import tqdm
 from app.pieces import Pawn, Horse, Bishop, Queen, Rook
 
@@ -27,7 +27,7 @@ class AI:
             return self.calculate_board_value(state)
 
         if ai_playing:
-            ai_value = -math.inf
+            ai_value = -inf
             self.model.currently_playing = "White"
             # calcs the score of every possible move
             for next_move in self.get_possible_moves(self.enemy, state):
@@ -63,7 +63,7 @@ class AI:
                     break
             return ai_value
 
-        player_value = math.inf
+        player_value = inf
         self.model.currently_playing = "Black"
         for next_move in self.get_possible_moves(self.color, state):
 
@@ -128,7 +128,7 @@ class AI:
                 if i.colour == "White":
                     white += piece_val
                 else:
-                    y_coordinate = math.floor(count / 8)
+                    y_coordinate = floor(count / 8)
                     x_coordinate = count - (y_coordinate * 7) - y_coordinate
                     black += table[7 - x_coordinate][y_coordinate]
             count += 1
@@ -221,7 +221,7 @@ class AI:
     def calc_move(self, moves, queue, state):
         """Calcs every possible move of the AI"""
 
-        best_score = math.inf
+        best_score = inf
         final_move = None
 
         for next_move in moves:
@@ -242,7 +242,7 @@ class AI:
                 pass
 
             # calcs the score of the current move
-            current_score = self.alpha_beta_pruning(temp, 3, -math.inf, math.inf, True)
+            current_score = self.alpha_beta_pruning(temp, 3, -inf, inf, True)
 
             if change_position is not None:
                 temp[y_move].position = change_position
@@ -286,7 +286,7 @@ class AI:
 
         for i in process_moves:
 
-            processes.append(m.Thread(target=self.calc_move, args=(i, queue, state,)))
+            processes.append(Thread(target=self.calc_move, args=(i, queue, state,)))
 
             try:
                 processes[100].start()
