@@ -2,9 +2,9 @@
     Sends the activation Code
 """
 from smtplib import SMTPRecipientsRefused
+from smtplib import SMTP_SSL as SMTP
 from socket import gaierror
 from email.mime.text import MIMEText
-from smtplib import SMTP_SSL as SMTP
 from json import load
 from os import urandom
 

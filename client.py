@@ -8,7 +8,7 @@ from socket import AF_INET
 from socket import SOCK_STREAM
 from select import select
 from threading import Thread
-from sys import exit
+from sys import exit as sys_exit
 from os import name
 from os import system
 from getpass import getpass
@@ -64,7 +64,7 @@ class Client:
                     self.conn.connect((self.host, self.port))
                 except ConnectionRefusedError:
                     print("Server refused connection. Please check the Server status")
-                    exit()
+                    sys_exit()
 
                 stop_threads = False
 
@@ -97,7 +97,7 @@ class Client:
 
                         elif message == 'Thanks for playing':
                             stop_threads = True
-                            exit()
+                            sys_exit()
 
                         else:
                             self.allowed_to_write = True
@@ -105,7 +105,7 @@ class Client:
         except ConnectionResetError:
             print("Connection to Server lost")
             stop_threads = True
-            exit()
+            sys_exit()
 
 
 if __name__ == "__main__":

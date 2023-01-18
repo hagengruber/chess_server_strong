@@ -121,7 +121,8 @@ class Controller:
 
             else:
                 self.view.clear_console()
-                self.view.print_menu(self.is_logged_in, sub_message="\nPlease enter a valid Number\n")
+                self.view.print_menu(self.is_logged_in,
+                                     sub_message="\nPlease enter a valid Number\n")
 
         else:
             self.view.clear_console()

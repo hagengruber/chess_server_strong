@@ -166,7 +166,8 @@ class Database:
     def fetch_data_from_credentials(self, mail, password):
         """Gets userdata using a mail address and a password"""
         self.open_connection()
-        res = self.cur.execute("""SELECT * FROM Spieler WHERE mail = ? AND passwort = ?""", (mail, password))
+        res = self.cur.execute("""SELECT * FROM Spieler WHERE mail = ? AND passwort = ?""",
+                               (mail, password))
         data = res.fetchall()
         self.close_connection()
         return data
