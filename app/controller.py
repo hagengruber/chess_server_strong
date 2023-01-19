@@ -369,11 +369,15 @@ class Controller:
 
             if match('^--', move):
                 if move[2:] == "STATS":
-                    pers = self.database_connection.fetch_public_userdata(
-                        14)  # eid where nutzername = enemy
+                    if self.user_ai is not None:
+                        self.view.print("AI doesnt have any stats")
+                        return self.get_movement_choice(self.view.get_movement_choice())
+                    else:
+                        pers = self.database_connection.fetch_public_userdata(
+                            14)
 
-                    self.view.show_stats(pers)
-                    self.get_movement_choice(self.view.get_movement_choice())
+                        self.view.show_stats(pers)
+                        self.get_movement_choice(self.view.get_movement_choice())
 
                 if move[2:] == "SAVE":
                     if self.model.ai_player is None:
