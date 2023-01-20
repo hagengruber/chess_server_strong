@@ -1,5 +1,4 @@
 tqdm
 pyfiglet
 colorama
-pytest
 argon2-cffi
